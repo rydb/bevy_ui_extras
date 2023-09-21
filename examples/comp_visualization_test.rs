@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use bevy::prelude::*;
 
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_ui_extras::{prelude::systems::visualize_sidepanel_for, systems::visualize_window_for};
+use bevy_ui_extras::systems::*;
 
 fn main() {
     App::new()
@@ -14,7 +14,7 @@ fn main() {
             )
         )
         .add_systems(Startup, spawn_world)
-        .add_systems(Update, (visualize_sidepanel_for::<Handle<Mesh>>, visualize_window_for::<Transform>))
+        .add_systems(Update, (visualize_right_sidepanel_for::<Handle<Mesh>>, visualize_window_for::<Transform>))
         .run();
 }
 
