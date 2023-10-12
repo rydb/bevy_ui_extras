@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ui_extras"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 repository = "https://github.com/rydb/bevy_ui_extras"
 readme = "README.md"
@@ -8,12 +8,12 @@ license = "MIT OR Apache-2.0"
 description = "A crate containing a collection of utilities to make working with ui in bevy easier."
 
 [dependencies]
-bevy = { version = "0.11.2"}
-glam = "0.24.1"
-bevy-inspector-egui = "0.19.0"
-egui = "0.22.0"
-bevy_egui = "0.21.0"
-bevy_window = "0.11.2"
+bevy = { version = "0.11"}
+glam = "0.24"
+bevy-inspector-egui = "0.20"
+egui = "0.23"
+bevy_egui = "0.22"
+bevy_window = "0.11"
 
 #[lib]
 #crate-type=["lib"]
