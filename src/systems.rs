@@ -31,8 +31,10 @@ pub fn visualize_left_sidepanel_for<T: Component>(
     .frame(
         window_style    
     )
+    
     .show(egui_context.get_mut(), |ui| {
         egui::ScrollArea::vertical().show(ui, |ui| {
+
             ui.heading(menu_name);
             bevy_inspector_egui::bevy_inspector::ui_for_world_entities_filtered::<With<T>>(world, ui, true);
         }
