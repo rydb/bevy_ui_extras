@@ -1,8 +1,4 @@
-use bevy::utils::default;
 use egui::{epaint::Shadow, Color32, Frame, Margin, Rounding, Stroke};
-
-///! default style sheets for specific "Looks"
-
 
 //128
 pub const DEBUG_FRAME_STYLE: Frame = Frame {
@@ -25,9 +21,9 @@ pub const DEBUG_FRAME_STYLE: Frame = Frame {
         se: 0.0,
     },
     shadow: Shadow::NONE,
-    fill: egui::Color32::from_rgba_premultiplied(15,15,15, 128),
+    fill: egui::Color32::from_rgba_premultiplied(15, 15, 15, 128),
     stroke: Stroke {
         width: 1.0,
-        color: Color32::BLACK
-    }
+        color: Color32::BLACK,
+    },
 };
