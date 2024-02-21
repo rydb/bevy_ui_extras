@@ -14,7 +14,7 @@ bevy_window = "0.13"
 
 
 glam = "0.25"
-bevy-inspector-egui =  {git = "https://github.com/jakobhellermann/bevy-inspector-egui", rev = "f0039054d3954b1dd7e51de73e7bbe432534d472"}
+bevy-inspector-egui = "0.23"
 egui = "0.26"
 bevy_egui = "0.25"
 
