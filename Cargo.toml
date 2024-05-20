@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ui_extras"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 repository = "https://github.com/rydb/bevy_ui_extras"
 readme = "README.md"
@@ -11,12 +11,15 @@ description = "A crate containing a collection of utilities to make working with
 bevy_ecs = { version = "0.13" }
 bevy_utils = { version = "0.13" }
 bevy_window = "0.13"
+bevy_derive = "0.13"
 
-
-glam = "0.25"
-bevy-inspector-egui = "0.23"
-egui = "0.26"
-bevy_egui = "0.25"
+glam = "0.27"
+bevy-inspector-egui = "0.24"
+egui = "0.27"
+bevy_egui = "0.27"
+egui_extras = "0.27"
+strum = "0.26"
+strum_macros = "0.26"
 
 [dev-dependencies]
 bevy = {version = "0.13", features = ["dynamic_linking"]}
