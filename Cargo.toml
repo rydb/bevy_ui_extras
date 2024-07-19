@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ui_extras"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 repository = "https://github.com/rydb/bevy_ui_extras"
 readme = "README.md"

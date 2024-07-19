@@ -5,7 +5,6 @@ use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 use bevy_egui::EguiContext;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_ui_extras::{resources::WindowStyleFrame, systems::*, tables::resources::{TablePick, TableTemplate}};
-use bevy_utils::hashbrown::HashMap;
 use bevy_window::PrimaryWindow;
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter};
