@@ -8,18 +8,18 @@ license = "MIT OR Apache-2.0"
 description = "A crate containing a collection of utilities to make working with ui in bevy easier."
 
 [dependencies]
-bevy_ecs = { version = "0.13" }
-bevy_utils = { version = "0.13" }
-bevy_window = "0.13"
-bevy_derive = "0.13"
+bevy_ecs = { version = "0.14" }
+bevy_utils = { version = "0.14" }
+bevy_window = "0.14"
+bevy_derive = "0.14"
 
-glam = "0.27"
-bevy-inspector-egui = "0.24"
-egui = "0.27"
-bevy_egui = "0.27"
-egui_extras = "0.27"
+glam = "0.28"
+bevy-inspector-egui = "0.25"
+egui = "0.28"
+bevy_egui = "0.28"
+egui_extras = "0.28"
 strum = "0.26"
 strum_macros = "0.26"
 
 [dev-dependencies]
-bevy = {version = "0.13", features = ["dynamic_linking"]}
+bevy = {version = "0.14", features = ["dynamic_linking"]}

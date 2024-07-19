@@ -5,6 +5,7 @@ use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 use bevy_egui::EguiContext;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_ui_extras::{resources::WindowStyleFrame, systems::*, tables::resources::{TablePick, TableTemplate}};
+use bevy_utils::hashbrown::HashMap;
 use bevy_window::PrimaryWindow;
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter};
@@ -53,13 +54,22 @@ fn spawn_world(
             -PI / 4.0,
             0.0,
         )),
-        material: materials.add(Color::CYAN),
+        material: materials.add(Color::hsl(180.0, 1.0, 0.5)),
         ..default()
     },
     MeshInfoTarget
         )
 );
 }
+
+// #[derive(Default, Clone, Copy, Reflect, Debug, PartialEq, Eq, EnumIter, Display)]
+// pub enum MeshAttributes {
+//     #[default]
+//     POSITION,
+//     //INDICE,
+//     NORMAL,
+//     UV,
+// }
 
 #[derive(Default, Clone, Copy, Reflect, Debug, PartialEq, Eq, EnumIter, Display)]
 pub enum MeshAttributes {
@@ -69,6 +79,22 @@ pub enum MeshAttributes {
     NORMAL,
     UV,
 }
+
+// pub fn say_hi() {
+//     println!("hewooo! OwO")
+// }
+// pub fn say_bye () {
+//     println!("goodbyee ;c;")
+// }
+
+// pub fn attribute_windows() {
+//     let tabs = HashMap::<
+
+//     tabs.insert("cool", say_hi);
+
+//     tabs.insert("lame", say_bye);
+// }
+
 
 /// creates a table displaying info about mesh targets, and a menu to edit these meshesh through. 
 pub fn display_mesh_info(
