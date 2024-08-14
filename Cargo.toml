@@ -12,6 +12,9 @@ bevy_ecs = { version = "0.14" }
 bevy_utils = { version = "0.14" }
 bevy_window = "0.14"
 bevy_derive = "0.14"
+bevy_reflect = "0.14"
+bevy_log = "0.14"
+pretty-type-name = "*"
 
 glam = "0.27"
 bevy-inspector-egui = "0.25"

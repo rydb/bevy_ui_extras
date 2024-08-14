@@ -18,8 +18,10 @@ fn main() {
     .add_systems(
         Update,
         (
-            visualize_right_sidepanel_for::<Handle<Mesh>>,
-            visualize_window_for::<Transform>,
+            //visualize_window_for::<Transform>,
+            visualize_right_sidepanel_for::<Transform>,
+
+            //visualize_window_for::<Transform>,
             display_mesh_info,
         ),
     )
