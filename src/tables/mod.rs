@@ -1,1 +1,3 @@
-pub mod resources;
+mod resources;
+
+pub use resources::*;

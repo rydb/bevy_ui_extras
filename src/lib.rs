@@ -6,7 +6,7 @@ use bevy_ecs::world::CommandQueue;
 use bevy_inspector_egui::reflect_inspector::{Context, InspectorUi};
 use bevy_inspector_egui::restricted_world_view::RestrictedWorldView;
 use bevy_log::warn;
-use bevy_reflect::TypeRegistry;
+use bevy_reflect::*;
 
 pub mod components;
 pub mod resources;
@@ -14,38 +14,28 @@ pub mod stylesheets;
 pub mod systems;
 pub mod tables;
 
-
-pub mod prelude {
-    pub use crate::*;
+pub enum Display {
+    Side(Side),
+    Window,
 }
 
+pub enum Side {
+    Left,
+    Right,
+}
 
-// fn components_of_entity(
-//     world: &mut RestrictedWorldView<'_>,
-//     entity: Entity,
-// ) -> Option<Vec<(String, ComponentId, Option<TypeId>, usize)>> {
-//     let entity_ref = world.world().get_entity(entity)?;
-
-//     let archetype = entity_ref.archetype();
-//     let mut components: Vec<_> = archetype
-//         .components()
-//         .map(|component_id| {
-//             let info = world.world().components().get_info(component_id).unwrap();
-//             let name = pretty_type_name::pretty_type_name_str(info.name());
-
-//             (name, component_id, info.type_id(), info.layout().size())
-//         })
-//         .collect();
-//     components.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
-//     Some(components)
-// }
+pub use components::*;
+pub use resources::*;
+pub use stylesheets::*;
+pub use systems::*;
+pub use tables::*;
 
 /// fetches the info for the componenet of type T for the given entity, if it exists. 
 pub fn component_info_for<T: Component>(
     world: &mut RestrictedWorldView<'_>,
-    entity: Entity,
+    //entity: Entity,
 ) -> Option<(String, ComponentId, Option<TypeId>, usize)> {
-    let entity_ref = world.world().get_entity(entity)?;
+    //let entity_ref = world.world().get_entity(entity)?;
 
     let component_id  = match world.world().components().get_id(TypeId::of::<T>()) {
         Some(id) => id,
@@ -54,7 +44,7 @@ pub fn component_info_for<T: Component>(
             return None
         }
     };
-    let archetype = entity_ref.archetype();
+    //let archetype = entity_ref.archetype();
     
     let info = world.world().components().get_info(component_id)?;
     
@@ -80,7 +70,7 @@ pub fn ui_for_component<T: Component>(
     id: egui::Id,
     type_registry: &TypeRegistry,
 ) {
-    let Some((name, component_id, component_type_id, size)) = component_info_for::<T>(world, entity) else {return;};
+    let Some((name, component_id, component_type_id, size)) = component_info_for::<T>(world) else {return;};
     
     let id = id.with(component_id);
 
@@ -107,7 +97,7 @@ pub fn ui_for_component<T: Component>(
         type_registry,
     ) {
         Ok(value) => value,
-        Err(e) => {
+        Err(..) => {
             //header.show(ui, |ui| errors::show_error(e, ui, &name));
             return;
         }

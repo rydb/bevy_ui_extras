@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ui_extras"
-version = "0.7.1"
+version = "0.8.0"
 edition = "2021"
 repository = "https://github.com/rydb/bevy_ui_extras"
 readme = "README.md"
@@ -14,7 +14,7 @@ bevy_window = "0.14"
 bevy_derive = "0.14"
 bevy_reflect = "0.14"
 bevy_log = "0.14"
-pretty-type-name = "*"
+pretty-type-name = "1.0"
 
 glam = "0.27"
 bevy-inspector-egui = "0.25"
