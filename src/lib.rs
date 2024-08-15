@@ -83,7 +83,10 @@ pub fn ui_for_resource<T: Resource>(
             .get_resource_reflect_mut_by_id(resource_type_id, type_registry)
         {
             Ok(resource) => resource,
-            Err(..) => {return;},//return errors::show_error(err, ui, name_of_type),
+            Err(err) => {
+                ui.label(format!("unable to display: {:#?}, Reason: {:#?}", resource_type_id, err));
+                return;
+            },//return errors::show_error(err, ui, name_of_type),
         };
 
         let changed = env.ui_for_reflect(resource, ui);
