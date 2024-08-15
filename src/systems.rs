@@ -66,6 +66,60 @@ pub fn visualize_entities_with_component<T: Component>(display: Display) -> impl
 
 }
 
+pub fn visualize_resource<T: Resource + Reflect>(display: Display) -> impl Fn(&mut World) {
+    type R = WindowStyleFrame;
+    let menu_name = std::any::type_name::<T>();
+
+    move |world| {
+
+        let window_style = world.get_resource::<R>().unwrap_or(&R::default()).frame;
+
+        let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world) else {
+            warn!("multiple \"primary\" windows found. This is not supported. Aborting");
+            return;
+        };
+
+        let mut egui_context = egui_context_check.clone();
+
+        let app_type_registry = world.resource::<AppTypeRegistry>().0.clone();
+        let type_registry = app_type_registry.read();
+
+        let mut add_ui = {
+            move |ui: &mut Ui | {
+
+                let mut queue = CommandQueue::default();
+                ui_for_resource::<T>(world, ui, &type_registry);
+
+                queue.apply(world);
+            }
+        };
+
+        match &display {
+            Display::Side(side) => {
+                let egui_side = match side {
+                    Side::Left => egui::panel::Side::Left,
+                    Side::Right => egui::panel::Side::Right,
+                };
+                egui::SidePanel::new(egui_side, menu_name)
+                .frame(window_style)
+                .show(egui_context.get_mut(), |ui| {
+                    ui.heading(menu_name);
+                    add_ui(ui)
+                });
+            }
+            Display::Window => {
+                egui::Window::new(menu_name)
+                .frame(window_style)
+                .show(egui_context.get_mut(), |ui| {
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                        add_ui(ui)
+                    });
+                });
+            }
+        };
+    }
+}
+
 pub fn visualize_components_for<T: Component + Reflect>(display: Display) -> impl Fn(&mut World) {
     type R = WindowStyleFrame;
     let menu_name = std::any::type_name::<T>();

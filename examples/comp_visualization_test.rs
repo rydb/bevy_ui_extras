@@ -19,8 +19,9 @@ fn main() {
         Update,
         (
             visualize_entities_with_component::<Handle<StandardMaterial>>(bevy_ui_extras::Display::Side(Side::Left)),
-            visualize_components_for::<Transform>(bevy_ui_extras::Display::Window),
-
+            visualize_components_for::<Transform>(bevy_ui_extras::Display::Side(Side::Right)),
+            visualize_resource::<ClearColor>(bevy_ui_extras::Display::Window),
+            
             display_mesh_info,
         ),
     )

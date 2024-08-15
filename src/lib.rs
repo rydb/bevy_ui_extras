@@ -61,6 +61,46 @@ pub fn component_info_for<T: Component>(
     );
 }
 
+pub fn ui_for_resource<T: Resource>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    type_registry: &TypeRegistry,
+) {
+    let mut queue = CommandQueue::default();
+
+    let resource_type_id = TypeId::of::<T>();
+    {
+        // create a context with access to the world except for the current resource
+        let mut world_view = RestrictedWorldView::new(world);
+        let (mut resource_view, world_view) = world_view.split_off_resource(resource_type_id);
+        let mut cx = Context {
+            world: Some(world_view),
+            queue: Some(&mut queue),
+        };
+        let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+
+        let (resource, set_changed) = match resource_view
+            .get_resource_reflect_mut_by_id(resource_type_id, type_registry)
+        {
+            Ok(resource) => resource,
+            Err(..) => {return;},//return errors::show_error(err, ui, name_of_type),
+        };
+
+        let changed = env.ui_for_reflect(resource, ui);
+        if changed {
+            set_changed();
+        }
+    }
+
+    
+
+    queue.apply(world);
+    // for (name, type_id) in resources {
+    //     ui.collapsing(name, |ui| {
+    //         by_type_id::ui_for_resource(world, type_id, ui, name, &type_registry);
+    //     });
+    // }
+}
 
 pub fn ui_for_component<T: Component>(
     world: &mut RestrictedWorldView<'_>,
