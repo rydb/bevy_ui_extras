@@ -1,7 +1,8 @@
-use std::any::TypeId;
+use std::any::*;
 
 use bevy_ecs::prelude::*;
 use bevy_ecs::component::ComponentId;
+use bevy_ecs::query::QueryFilter;
 use bevy_ecs::world::CommandQueue;
 use bevy_inspector_egui::reflect_inspector::{Context, InspectorUi};
 use bevy_inspector_egui::restricted_world_view::RestrictedWorldView;
@@ -13,6 +14,7 @@ pub mod resources;
 pub mod stylesheets;
 pub mod systems;
 pub mod tables;
+pub mod plugins;
 
 pub enum Display {
     Side(Side),
@@ -24,17 +26,36 @@ pub enum Side {
     Right,
 }
 
+use bevy_utils::HashMap;
+pub use plugins::*;
 pub use components::*;
 pub use resources::*;
 pub use stylesheets::*;
 pub use systems::*;
 pub use tables::*;
 
+pub struct TypeIdNameCache {
+    pub(crate) type_id: TypeId,
+    pub(crate) name:  String,
+}
+
+impl TypeIdNameCache {
+    pub fn type_id(&self) -> TypeId {
+        self.type_id
+    }
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+}
+
+
 /// fetches the info for the componenet of type T for the given entity, if it exists. 
 pub fn component_info_for<T: Component>(
     world: &mut RestrictedWorldView<'_>,
+    //component: TypeIdNameCache
     //entity: Entity,
 ) -> Option<(String, ComponentId, Option<TypeId>, usize)> {
+    
     //let entity_ref = world.world().get_entity(entity)?;
 
     let component_id  = match world.world().components().get_id(TypeId::of::<T>()) {
@@ -104,6 +125,28 @@ pub fn ui_for_resource<T: Resource>(
     //     });
     // }
 }
+
+pub fn ui_for_components<T: Reflect + Component>(world: &mut World, type_registry: &TypeRegistry, ui: &mut egui::Ui, entities: Vec<Entity>) {
+    //let entities_test = world.query_filtered::<Entity, With<QueryFilter
+    let mut queue = CommandQueue::default();
+    for entity in entities {
+        let name = std::any::type_name::<T>();
+
+        ui.label(name);
+
+        ui_for_component::<T>(
+            &mut world.into(),
+            Some(&mut queue),
+            entity.clone(),
+            ui,
+            egui::Id::new(entity),
+            &type_registry,
+        );
+    }
+
+    queue.apply(world);
+}
+
 
 pub fn ui_for_component<T: Component>(
     world: &mut RestrictedWorldView<'_>,

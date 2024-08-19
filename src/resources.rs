@@ -1,4 +1,8 @@
+use std::any::TypeId;
+
+use bevy_input::prelude::KeyCode;
 use bevy_ecs::system::Resource;
+use bevy_reflect::Reflect;
 use egui::Frame;
 
 use crate::stylesheets::DEBUG_FRAME_STYLE;
@@ -13,6 +17,25 @@ impl Default for WindowStyleFrame {
     fn default() -> Self {
         Self {
             frame: DEBUG_FRAME_STYLE,
+        }
+    }
+}
+
+#[derive(Resource, Reflect, Default)]
+pub struct FilterResponse {
+    pub filter: String,
+    pub selected_type: Option<TypeId>,
+}
+
+#[derive(Resource)]
+pub struct UiExtrasKeybinds {
+    pub open_debug_menu: KeyCode
+}
+
+impl Default for UiExtrasKeybinds {
+    fn default() -> Self {
+        Self {
+            open_debug_menu: KeyCode::AltLeft
         }
     }
 }

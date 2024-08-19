@@ -11,6 +11,7 @@ use strum_macros::{Display, EnumIter};
 
 fn main() {
     App::new()
+    .add_plugins(UiExtrasDebug)
     .init_resource::<TablePick<MeshAttributes>>()
     .add_plugins((DefaultPlugins, WorldInspectorPlugin::new()))
     .add_systems(Startup, spawn_world)
