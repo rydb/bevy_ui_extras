@@ -15,7 +15,7 @@ pub mod stylesheets;
 pub mod systems;
 pub mod tables;
 pub mod plugins;
-
+pub mod tree;
 pub enum Display {
     Side(Side),
     Window,
@@ -33,7 +33,11 @@ pub use resources::*;
 pub use stylesheets::*;
 pub use systems::*;
 pub use tables::*;
+pub use tree::*;
 
+
+/// helper struct for keeping name and type_id together after type erasing a type.
+#[derive(Reflect, Clone, Debug)]
 pub struct TypeIdNameCache {
     pub(crate) type_id: TypeId,
     pub(crate) name:  String,
@@ -46,22 +50,30 @@ impl TypeIdNameCache {
     pub fn name(&self) -> &str {
         &self.name
     }
+    /// create this from a typed T
+    pub fn new_typed<T: Reflect>() -> Self{
+        Self {
+            type_id: TypeId::of::<T>(),
+            name: std::any::type_name::<T>().to_owned()
+        }
+    }
+    //pub(crate) fn new_untyped(type_id: TypeId, name:)
 }
 
 
 /// fetches the info for the componenet of type T for the given entity, if it exists. 
-pub fn component_info_for<T: Component>(
+pub fn component_info_for(
     world: &mut RestrictedWorldView<'_>,
-    //component: TypeIdNameCache
+    component: &TypeIdNameCache
     //entity: Entity,
 ) -> Option<(String, ComponentId, Option<TypeId>, usize)> {
     
     //let entity_ref = world.world().get_entity(entity)?;
 
-    let component_id  = match world.world().components().get_id(TypeId::of::<T>()) {
+    let component_id  = match world.world().components().get_id(component.type_id) {
         Some(id) => id,
         None => {
-            warn!("Could not get component id for {:#}", std::any::type_name::<T>());
+            warn!("Could not get component id for {:#}", component.name);
             return None
         }
     };
@@ -82,14 +94,16 @@ pub fn component_info_for<T: Component>(
     );
 }
 
-pub fn ui_for_resource<T: Resource>(
+pub fn ui_for_resource(
     world: &mut World,
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
+    resource: &TypeIdNameCache,
 ) {
     let mut queue = CommandQueue::default();
 
-    let resource_type_id = TypeId::of::<T>();
+    //let resource = TypeIdNameCache::t
+    let resource_type_id = resource.type_id();
     {
         // create a context with access to the world except for the current resource
         let mut world_view = RestrictedWorldView::new(world);
@@ -126,21 +140,24 @@ pub fn ui_for_resource<T: Resource>(
     // }
 }
 
-pub fn ui_for_components<T: Reflect + Component>(world: &mut World, type_registry: &TypeRegistry, ui: &mut egui::Ui, entities: Vec<Entity>) {
+pub fn ui_for_components(world: &mut World, type_registry: &TypeRegistry, ui: &mut egui::Ui, entities: Vec<Entity>, component: &TypeIdNameCache) {
     //let entities_test = world.query_filtered::<Entity, With<QueryFilter
     let mut queue = CommandQueue::default();
+    //let component = TypeIdNameCache::new_typed::<T>();
+    let name = component.name();
+
     for entity in entities {
-        let name = std::any::type_name::<T>();
 
         ui.label(name);
 
-        ui_for_component::<T>(
+        ui_for_component(
             &mut world.into(),
             Some(&mut queue),
             entity.clone(),
             ui,
             egui::Id::new(entity),
             &type_registry,
+            component
         );
     }
 
@@ -148,15 +165,17 @@ pub fn ui_for_components<T: Reflect + Component>(world: &mut World, type_registr
 }
 
 
-pub fn ui_for_component<T: Component>(
+pub fn ui_for_component(
     world: &mut RestrictedWorldView<'_>,
     mut queue: Option<&mut CommandQueue>,
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
+    component: &TypeIdNameCache,
 ) {
-    let Some((name, component_id, component_type_id, size)) = component_info_for::<T>(world) else {return;};
+    //let component = TypeIdNameCache::new_typed::<T>();
+    let Some((name, component_id, component_type_id, size)) = component_info_for(world, component) else {return;};
     
     let id = id.with(component_id);
 

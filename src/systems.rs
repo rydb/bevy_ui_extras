@@ -22,8 +22,6 @@ pub fn debug_menu(world: &mut World) {
 
     let window_style = world.get_resource::<R>().unwrap_or(&R::default()).frame;
 
-
-
     let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world) else {
         warn!("multiple \"primary\" windows found. This is not supported. Aborting");
         return;
@@ -38,6 +36,7 @@ pub fn debug_menu(world: &mut World) {
         warn!("FilterResponse doesn't exist. Aborting");
         return;
     };
+    let debug_filter_response = debug_filter_response.clone();
 
     let resources_filtered = type_registry
         .iter()
@@ -53,37 +52,45 @@ pub fn debug_menu(world: &mut World) {
         }) 
         .collect::<Vec<_>>();
 
-    
+    {
+        egui::Window::new("debug_menu")
+        .frame(window_style)
+        .show(egui_context.get_mut(), |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                match &debug_filter_response.selected_type {
+                    None => {
+                        ui.horizontal(|ui| {
+                            ui.label("filter: ");
+                            let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
+                                warn!("FilterResponse doesn't exist. Aborting");
+                                return;
+                            };
 
-    egui::Window::new("debug_menu")
-    .frame(window_style)
-    .show(egui_context.get_mut(), |ui| {
-        egui::ScrollArea::vertical().show(ui, |ui| {
-            match debug_filter_response.selected_type {
-                None => {
-                    ui.horizontal(|ui| {
-                        ui.label("filter: ");
-                        ui.text_edit_singleline(&mut debug_filter_response.filter)
-                    });
-                    ui.heading("Resources");
-                    for (name, id) in resources_filtered {
-                        if ui.button(name).clicked() {
-                            debug_filter_response.selected_type = Some(id)
-                        };
+                            ui.text_edit_singleline(&mut debug_filter_response.filter);
+                        });
+                        ui.heading("Resources");
+                        for (name, id) in resources_filtered {
+                            if ui.button(name).clicked() {
+                                let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
+                                    warn!("FilterResponse doesn't exist. Aborting");
+                                    return;
+                                };
+                                debug_filter_response.selected_type = Some(TypeIdNameCache { type_id: id, name: name.to_owned() })
+                                
+                            };
+                        }
                     }
+                    Some(..) => {}
                 }
-                Some(ty) => {
-                    let Some(resource) = type_registry.get(ty) else {
-                        warn!("cannot fetch from type from registration: {:#?}", ty);
-                        return;
-                    };
-
-                    //let Some(data) = resource.data();
+                //let debug_filter_response = debug_filter_response.clone();
+                if let Some(resource) = debug_filter_response.selected_type {
+                    ui_for_resource(world, ui, &type_registry, &resource)
                 }
-            }
-            //add_ui(ui)
+            });
         });
-    });
+    }
+    //let debug_filter_response = debug_filter_response.clone();
+
 
 }
 
@@ -157,11 +164,12 @@ pub fn visualize_resource<T: Resource + Reflect>(display: Display) -> impl Fn(&m
         let app_type_registry = world.resource::<AppTypeRegistry>().0.clone();
         let type_registry = app_type_registry.read();
 
+        let resource = TypeIdNameCache::new_typed::<T>();
         let mut add_ui = {
             move |ui: &mut Ui | {
 
                 let mut queue = CommandQueue::default();
-                ui_for_resource::<T>(world, ui, &type_registry);
+                ui_for_resource(world, ui, &type_registry, &resource);
 
                 queue.apply(world);
             }
@@ -218,18 +226,21 @@ pub fn visualize_components_for<T: Component + Reflect>(display: Display) -> imp
             move |ui: &mut Ui | {
 
                 let mut queue = CommandQueue::default();
-                for component in component_entities {
-                    let name = component.to_string();
+                let component = TypeIdNameCache::new_typed::<T>();
+
+                for entity in component_entities {
+                    let name = entity.to_string();
 
                     ui.label(name);
 
-                    ui_for_component::<T>(
+                    ui_for_component(
                         &mut world.into(),
                         Some(&mut queue),
-                        component.clone(),
+                        entity.clone(),
                         ui,
-                        egui::Id::new(component),
+                        egui::Id::new(entity),
                         &type_registry,
+                        &component
                     );
                 }
 

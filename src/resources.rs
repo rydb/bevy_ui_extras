@@ -5,7 +5,7 @@ use bevy_ecs::system::Resource;
 use bevy_reflect::Reflect;
 use egui::Frame;
 
-use crate::stylesheets::DEBUG_FRAME_STYLE;
+use crate::{stylesheets::DEBUG_FRAME_STYLE, TypeIdNameCache};
 
 /// the style that egui windows for this library use. See [`stylesheets.rs`] for what those look like.
 #[derive(Resource)]
@@ -21,10 +21,10 @@ impl Default for WindowStyleFrame {
     }
 }
 
-#[derive(Resource, Reflect, Default)]
+#[derive(Resource, Reflect, Default, Clone)]
 pub struct FilterResponse {
     pub filter: String,
-    pub selected_type: Option<TypeId>,
+    pub selected_type: Option<TypeIdNameCache>,
 }
 
 #[derive(Resource)]
