@@ -9,12 +9,13 @@ use bevy_inspector_egui::egui::{Color32, RichText, Ui};
 use egui_extras::{Column, Table, TableBuilder, TableRow};
 use strum::IntoEnumIterator;
 
-/// struct with methods for quickly creating tables with associated formatting.
+/// Resource for quickly creating a table
+/// init this resource with your enum of table attributes, fetch this resource, and use [`.ui`] to render the table.
+#[derive(Resource, Default)]
+pub struct QuickTable<T>(pub TablePick<T>);
 
-pub struct TableTemplate;
-
-impl TableTemplate {
-    pub fn new<'a, T: IntoEnumIterator + Display + Eq + Copy + Default>(ui: &'a mut Ui, headers: &mut TablePick<T>) -> Table<'a> {
+impl<T: IntoEnumIterator + Display + Eq + Copy + Default> QuickTable<T> {
+    pub fn ui<'a>(&mut self, ui: &'a mut Ui) -> Table<'a> {
         let collum_count = T::iter().len();
         
         let table = TableBuilder::new(ui)
@@ -32,12 +33,13 @@ impl TableTemplate {
         ;
         table
         .header(20.0, |mut header| {
-            headers.layout_headers(&mut header)
+            self.0.layout_headers(&mut header)
         })
+        
     }
 }
 
-#[derive(Resource, Default, Deref, DerefMut)]
+#[derive(Default, Deref, DerefMut)]
 pub struct TablePick<T>(HashMap<String, T>);
 
 impl<T: IntoEnumIterator + Display + Eq + Copy + Default> TablePick<T> {
@@ -96,6 +98,7 @@ impl<T: IntoEnumIterator + Display + Eq + Copy + Default> TablePick<T> {
                     }
                 }
             });
+            
 
         }
         //self

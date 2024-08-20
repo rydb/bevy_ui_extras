@@ -19,6 +19,7 @@ bevy_app = "0.14"
 bevy_state = "0.14"
 pretty-type-name = "1.0"
 egui_tiles = "0.9"
+#rand = "0.8.5"
 #derive_more = "1.0"
 
 glam = "0.27"

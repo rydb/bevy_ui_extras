@@ -1,5 +1,6 @@
 use std::any::TypeId;
 
+use bevy_ecs::prelude::*;
 use bevy_input::prelude::KeyCode;
 use bevy_ecs::system::Resource;
 use bevy_reflect::Reflect;
@@ -27,15 +28,19 @@ pub struct FilterResponse {
     pub selected_type: Option<TypeIdNameCache>,
 }
 
-#[derive(Resource)]
+#[derive(Resource, Reflect)]
+#[reflect(Resource)]
 pub struct UiExtrasKeybinds {
-    pub open_debug_menu: KeyCode
+    pub toggle_debug_menu: KeyCode
 }
+
+#[derive(Resource)]
+pub struct DebugMenuToggle(pub bool);
 
 impl Default for UiExtrasKeybinds {
     fn default() -> Self {
         Self {
-            open_debug_menu: KeyCode::AltLeft
+            toggle_debug_menu: KeyCode::AltLeft
         }
     }
 }

@@ -4,6 +4,7 @@ use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 
 use bevy_egui::EguiContext;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_state::app::StatesPlugin;
 use bevy_ui_extras::*;
 use bevy_window::PrimaryWindow;
 use strum::IntoEnumIterator;
@@ -11,9 +12,10 @@ use strum_macros::{Display, EnumIter};
 
 fn main() {
     App::new()
-    .add_plugins(UiExtrasDebug)
-    .init_resource::<TablePick<MeshAttributes>>()
+    .init_resource::<QuickTable<MeshAttributes>>()
     .add_plugins((DefaultPlugins, WorldInspectorPlugin::new()))
+    .add_plugins(UiExtrasDebug)
+
     .add_systems(Startup, spawn_world)
     .insert_resource(WindowStyleFrame::default())
     .add_systems(
@@ -22,7 +24,6 @@ fn main() {
             visualize_entities_with_component::<Handle<StandardMaterial>>(bevy_ui_extras::Display::Side(Side::Left)),
             visualize_components_for::<Transform>(bevy_ui_extras::Display::Side(Side::Right)),
             visualize_resource::<ClearColor>(bevy_ui_extras::Display::Window),
-            
             display_mesh_info,
         ),
     )
@@ -76,7 +77,8 @@ pub enum MeshAttributes {
 /// creates a table displaying info about mesh targets, and a menu to edit these meshesh through. 
 pub fn display_mesh_info(
     mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
-    mut mesh_attr_table: ResMut<TablePick<MeshAttributes>>,
+    //mut mesh_attr_table: ResMut<TablePick<MeshAttributes>>,
+    mut mesh_attr_table: ResMut<QuickTable<MeshAttributes>>,
     target_meshes: Query<&Handle<Mesh>, With<MeshInfoTarget>>,
     mut meshes: ResMut<Assets<Mesh>>
 ) {
@@ -88,11 +90,11 @@ pub fn display_mesh_info(
             for mesh_check in target_meshes.iter() {
                 let Some(mesh) = meshes.get_mut(mesh_check) else {continue;};
                 
-                TableTemplate::new(ui, &mut *mesh_attr_table)
+                mesh_attr_table.ui(ui)
                 .body(|mut body| {
                     body.row(20.0, |mut row| {
                         for attr_type in MeshAttributes::iter() {
-                             if mesh_attr_table.contains_key(&attr_type.to_string()) {
+                             if mesh_attr_table.0.contains_key(&attr_type.to_string()) {
                                 row.col(|ui| {
                                     match attr_type {
                                         MeshAttributes::POSITION => {

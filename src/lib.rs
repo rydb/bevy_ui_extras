@@ -16,6 +16,8 @@ pub mod systems;
 pub mod tables;
 pub mod plugins;
 pub mod tree;
+pub mod states;
+
 pub enum Display {
     Side(Side),
     Window,
@@ -34,7 +36,6 @@ pub use stylesheets::*;
 pub use systems::*;
 pub use tables::*;
 pub use tree::*;
-
 
 /// helper struct for keeping name and type_id together after type erasing a type.
 #[derive(Reflect, Clone, Debug)]
@@ -69,7 +70,7 @@ pub fn component_info_for(
 ) -> Option<(String, ComponentId, Option<TypeId>, usize)> {
     
     //let entity_ref = world.world().get_entity(entity)?;
-
+    //let x = world.split_off_components(components)
     let component_id  = match world.world().components().get_id(component.type_id) {
         Some(id) => id,
         None => {

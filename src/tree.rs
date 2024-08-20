@@ -1,3 +1,6 @@
+
+use std::any::TypeId;
+
 use crate::TypeIdNameCache;
 
 use super::resources::*;
@@ -17,9 +20,17 @@ use egui_tiles::{SimplificationOptions, Tile, TileId, Tree};
 // #[derive(Resource, Deref, DerefMut)]
 // pub struct WgslInUi(Tree<Pane>);
 
-#[derive(Resource, Deref, DerefMut)]
-pub struct SelectedComponentsUi(Tree<Pane>);
+#[derive(Resource, Default, Reflect, Deref, DerefMut)]
+pub struct SelectedComponentsUi(pub HashMap<TypeId, TypeId>);
 
+
+// pub type TestUi = TreeUi<Pane>;
+
+// impl<T> Default for TreeUi<T> {
+//     fn default() -> Self {
+//         Self(Tree::empty(egui::Id::new(rand::random::<u64>())))
+//     }
+// }
 // impl Default for SelectedComponentsUi {
 //     fn default() -> Self {
 //         Self()
@@ -32,7 +43,7 @@ pub struct SelectedComponentsUi(Tree<Pane>);
 
 pub struct TreeBehavior {}
 
-#[derive(Debug, Default, Reflect, Clone)]
+#[derive(Reflect, Debug, Default, Clone)]
 pub struct Pane {
     pub name: String,
     pub component_id: Option<TypeIdNameCache>,
@@ -99,37 +110,3 @@ impl egui_tiles::Behavior<Pane> for TreeBehavior {
     // }
 }
 
-/// displays relevant wgsl file info
-pub fn display_selected_components(
-    mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
-    mut selected_components: ResMut<SelectedComponentsUi>,
-    //wgsl_cache: Res<WgslCache>,
-) {
-    for mut context in primary_window.iter_mut() {
-        //let mut tiles = egui_tiles::Tiles::default();
-        //let mut tabs = Vec::new();
-
-        egui::Window::new("Wgsl In").show(context.get_mut(), |ui| {
-            let mut behavior = TreeBehavior {};
-
-            // if ui.button("refresh shader list").clicked() || wgsl_in_tree.tiles.len() <= 0 {
-            //     for (name, src) in wgsl_cache.iter() {
-            //         let panel = Pane {
-            //             name: name.clone(),
-            //             content: src.to_string(),
-            //         };
-
-            //         tabs.push(tiles.insert_pane(panel));
-            //     }
-            //     let root = tiles.insert_tab_tile(tabs.clone());
-
-            //     //TODO: tree needs to be overwriten every time something is added because I havent found a way to get items to add properly
-            //     // this needs to be fixed at some point though.
-            //     **wgsl_in_tree = egui_tiles::Tree::new("wgslin_tree", root, tiles);
-            // }
-
-            // selected_components.ui(&mut behavior, ui);
-            // ui.allocate_space(ui.available_size());
-        });
-    }
-}
