@@ -72,7 +72,7 @@ pub fn debug_menu(world: &mut World) {
             )
         })
         .filter(|(_, name, ..)| {
-            debug_filter_response.filter.len() <= 0 || name.starts_with(&debug_filter_response.filter)
+            debug_filter_response.filter.len() <= 0 || name.to_lowercase().starts_with(&debug_filter_response.filter.to_lowercase())
         }) 
         .collect::<HashMap<TypeId, &str>>();
     let components_filtered = type_registry
@@ -86,7 +86,7 @@ pub fn debug_menu(world: &mut World) {
             )
         })
         .filter(|(_ ,name, ..)| {
-            debug_filter_response.filter.len() <= 0 || name.starts_with(&debug_filter_response.filter)
+            debug_filter_response.filter.len() <= 0 || name.to_lowercase().starts_with(&debug_filter_response.filter.to_lowercase())
         }) 
         .collect::<HashMap<_, _>>();
     let components_filtered_and_attached = components_filtered
@@ -131,7 +131,8 @@ pub fn debug_menu(world: &mut World) {
                         return;
                     };
 
-                    debug_filter_response.selected_type = None
+                    debug_filter_response.selected_type = None;
+                    debug_filter_response.filter = "".to_owned();
                 }
                 match &debug_filter_response.selected_type {
                     None => {
@@ -141,8 +142,9 @@ pub fn debug_menu(world: &mut World) {
                                 warn!("FilterResponse doesn't exist. Aborting");
                                 return;
                             };
-
                             ui.text_edit_singleline(&mut debug_filter_response.filter);
+                            //debug_filter_response.filter = debug_filter_response.filter.to_lowercase();
+
                         });
                         ui.heading("Resources");
                         for (id, name) in resources_filtered.iter() {
