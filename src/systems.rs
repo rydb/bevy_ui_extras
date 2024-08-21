@@ -123,86 +123,118 @@ pub fn debug_menu(world: &mut World) {
     {
         egui::Window::new("debug_menu")
         .frame(window_style)
+        //.scroll(true)
         .show(egui_context.get_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                if ui.button("clear").clicked() {
-                    let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
-                        warn!("FilterResponse doesn't exist. Aborting");
-                        return;
-                    };
+            if ui.button("clear").clicked() {
+                let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
+                    warn!("FilterResponse doesn't exist. Aborting");
+                    return;
+                };
 
-                    debug_filter_response.selected_type = None;
-                    debug_filter_response.filter = "".to_owned();
-                }
-                match &debug_filter_response.selected_type {
-                    None => {
-                        ui.horizontal(|ui| {
-                            ui.label("filter: ");
-                            let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
-                                warn!("FilterResponse doesn't exist. Aborting");
-                                return;
-                            };
-                            ui.text_edit_singleline(&mut debug_filter_response.filter);
-                            //debug_filter_response.filter = debug_filter_response.filter.to_lowercase();
+                debug_filter_response.selected_type = None;
+                debug_filter_response.filter = "".to_owned();
+            }
+            //if debug_filter_response.selected_type.is_none() {
+            ui.horizontal(|ui| {
+                ui.label("filter: ");
+                let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
+                    warn!("FilterResponse doesn't exist. Aborting");
+                    return;
+                };
+                ui.text_edit_singleline(&mut debug_filter_response.filter);
+                //debug_filter_response.filter = debug_filter_response.filter.to_lowercase();
 
-                        });
-                        ui.heading("Resources");
-                        for (id, name) in resources_filtered.iter() {
-                            if ui.button(*name).clicked() {
-                                let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
-                                    warn!("FilterResponse doesn't exist. Aborting");
-                                    return;
-                                };
-                                debug_filter_response.selected_type = Some(TypeIdNameCache { type_id: *id, name: (*name).to_owned() })
-                                
-                            };
-                        }
-                        ui.heading("Components");
-                        for (id, (name, _), ..) in components_filtered_and_attached.iter() {
-                            if ui.button(**name).clicked() {
-                                let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
-                                    warn!("FilterResponse doesn't exist. Aborting");
-                                    return;
-                                };
-                                debug_filter_response.selected_type = Some(TypeIdNameCache { type_id: **id, name: (**name).to_owned() })
-                                
-                            };
-                        }
-                    }
-                    Some(..) => {}
-                }                
-
-                //let debug_filter_response = debug_filter_response.clone();
-                if let Some(resource) = debug_filter_response.selected_type {
-                    ui.heading(&resource.name);
-                    if components_filtered.contains_key(&resource.type_id) {
-                        let mut queue = CommandQueue::default();
-
-                        let Some((_, entities)) = components_filtered_and_attached.get(&resource.type_id) else {return;};
-
-                        for entity in entities {
-                            let name = entity.to_string();
-        
-                            ui.label(name);
-        
-                            ui_for_component(
-                                &mut world.into(),
-                                Some(&mut queue),
-                                entity.clone(),
-                                ui,
-                                egui::Id::new(entity),
-                                &type_registry,
-                                &resource
-                            );
-                        }
-        
-                        queue.apply(world);
-                    }
-                    if resources_filtered.contains_key(&resource.type_id) {
-                        ui_for_resource(world, ui, &type_registry, &resource);
-                    }
-                }
             });
+            egui::ScrollArea::vertical()
+                .show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        //egui::ScrollArea::vertical()
+                        //.show(ui, |ui| {
+                            ui.vertical(|ui| {
+        
+                                ui.heading("Resources");
+                                for (id, name) in resources_filtered.iter() {
+                                    if ui.button(*name).clicked() {
+                                        let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
+                                            warn!("FilterResponse doesn't exist. Aborting");
+                                            return;
+                                        };
+                                        debug_filter_response.selected_type = Some(TypeIdNameCache { type_id: *id, name: (*name).to_owned() })
+                                        
+                                    };
+                                }
+                                ui.heading("Components");
+                                for (id, (name, _), ..) in components_filtered_and_attached.iter() {
+                                    if ui.button(**name).clicked() {
+                                        let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
+                                            warn!("FilterResponse doesn't exist. Aborting");
+                                            return;
+                                        };
+                                        debug_filter_response.selected_type = Some(TypeIdNameCache { type_id: **id, name: (**name).to_owned() })
+                                        
+                                    };
+                                }
+                                // match &debug_filter_response.selected_type {
+                                //     None => {
+        
+                                //     }
+                                //     Some(..) => {}
+                                // }                
+                
+                                //let debug_filter_response = debug_filter_response.clone();
+            
+                            });
+                            //egui::Frame::default()
+                            //.show(ui, |ui| {
+                                //egui::ScrollArea::vertical()
+                                //.show(ui, |ui| {
+                                    ui.vertical(|ui| {
+                                        if let Some(resource) = debug_filter_response.selected_type {
+                                            ui.heading(&resource.name);
+                                            if components_filtered.contains_key(&resource.type_id) {
+                                                let mut queue = CommandQueue::default();
+                        
+                                                let Some((_, entities)) = components_filtered_and_attached.get(&resource.type_id) else {return;};
+                        
+                                                for entity in entities {
+                                                    let name = entity.to_string();
+                                
+                                                    ui.label(name);
+                                
+                                                    ui_for_component(
+                                                        &mut world.into(),
+                                                        Some(&mut queue),
+                                                        entity.clone(),
+                                                        ui,
+                                                        egui::Id::new(entity),
+                                                        &type_registry,
+                                                        &resource
+                                                    );
+                                                }
+                                
+                                                queue.apply(world);
+                                            }
+                                            if resources_filtered.contains_key(&resource.type_id) {
+                                                ui_for_resource(world, ui, &type_registry, &resource);
+                                            }
+                                        }
+                                    });
+                                //});
+                            //});
+                        //});
+                        // egui::ScrollArea::vertical()
+                        // .show(ui, |ui| {
+        
+                        //});
+        
+        
+        
+        
+                        //ui.label("test");
+                    });
+            });
+
+
         });
     }
 }
