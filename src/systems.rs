@@ -23,6 +23,36 @@ use states::DebugMenuState;
 use super::*;
 //use crate::ui_for_entity_components;
 
+pub fn nested_windows_test(
+    mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
+) {
+    for mut context in primary_window.iter_mut() {
+        egui::Window::new("sub windows test")
+        .show(context.get_mut(), |ui| {
+            egui::SidePanel::left("left")
+            .width_range(80.0..=200.0)
+            .show_inside(ui, |ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.label("left left left \n".repeat(500))
+                }); 
+            });
+            egui::CentralPanel::default()
+            .show_inside(ui, |ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.label("Central Central Central \n".repeat(500))
+                }); 
+            });
+            egui::SidePanel::right("right")
+            .width_range(80.0..=200.0)
+            .show_inside(ui, |ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.label("right right right \n".repeat(500))
+                }); 
+            })
+        });
+    }
+}
+
 pub fn manage_debug_menu_state(
     menu_controls: Res<UiExtrasKeybinds>,
     buttons: Res<ButtonInput<KeyCode>>,
@@ -145,95 +175,84 @@ pub fn debug_menu(world: &mut World) {
                 //debug_filter_response.filter = debug_filter_response.filter.to_lowercase();
 
             });
-            egui::ScrollArea::vertical()
+            egui::SidePanel::left("left2")
+            .show_inside(ui, |ui| {
+                egui::ScrollArea::new(true)
+                .show(ui, |ui| {
+                    ui.heading("Resources");
+                    for (id, name) in resources_filtered.iter() {
+                        if ui.button(*name).clicked() {
+                            let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
+                                warn!("FilterResponse doesn't exist. Aborting");
+                                return;
+                            };
+                            debug_filter_response.selected_type = Some(TypeIdNameCache { type_id: *id, name: (*name).to_owned() })
+                            
+                        };
+                    }
+                });
+            });
+            egui::SidePanel::left("left")
+            .show_inside(ui, |ui| {
+                egui::ScrollArea::new(true)
                 .show(ui, |ui| {
                     ui.horizontal(|ui| {
-                        //egui::ScrollArea::vertical()
-                        //.show(ui, |ui| {
-                            ui.vertical(|ui| {
-        
-                                ui.heading("Resources");
-                                for (id, name) in resources_filtered.iter() {
-                                    if ui.button(*name).clicked() {
-                                        let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
-                                            warn!("FilterResponse doesn't exist. Aborting");
-                                            return;
-                                        };
-                                        debug_filter_response.selected_type = Some(TypeIdNameCache { type_id: *id, name: (*name).to_owned() })
-                                        
-                                    };
-                                }
-                                ui.heading("Components");
-                                for (id, (name, _), ..) in components_filtered_and_attached.iter() {
-                                    if ui.button(**name).clicked() {
-                                        let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
-                                            warn!("FilterResponse doesn't exist. Aborting");
-                                            return;
-                                        };
-                                        debug_filter_response.selected_type = Some(TypeIdNameCache { type_id: **id, name: (**name).to_owned() })
-                                        
-                                    };
-                                }
-                                // match &debug_filter_response.selected_type {
-                                //     None => {
-        
-                                //     }
-                                //     Some(..) => {}
-                                // }                
-                
-                                //let debug_filter_response = debug_filter_response.clone();
-            
-                            });
-                            //egui::Frame::default()
-                            //.show(ui, |ui| {
-                                //egui::ScrollArea::vertical()
-                                //.show(ui, |ui| {
-                                    ui.vertical(|ui| {
-                                        if let Some(resource) = debug_filter_response.selected_type {
-                                            ui.heading(&resource.name);
-                                            if components_filtered.contains_key(&resource.type_id) {
-                                                let mut queue = CommandQueue::default();
-                        
-                                                let Some((_, entities)) = components_filtered_and_attached.get(&resource.type_id) else {return;};
-                        
-                                                for entity in entities {
-                                                    let name = entity.to_string();
-                                
-                                                    ui.label(name);
-                                
-                                                    ui_for_component(
-                                                        &mut world.into(),
-                                                        Some(&mut queue),
-                                                        entity.clone(),
-                                                        ui,
-                                                        egui::Id::new(entity),
-                                                        &type_registry,
-                                                        &resource
-                                                    );
-                                                }
-                                
-                                                queue.apply(world);
-                                            }
-                                            if resources_filtered.contains_key(&resource.type_id) {
-                                                ui_for_resource(world, ui, &type_registry, &resource);
-                                            }
-                                        }
-                                    });
-                                //});
-                            //});
-                        //});
-                        // egui::ScrollArea::vertical()
-                        // .show(ui, |ui| {
-        
-                        //});
-        
-        
-        
-        
-                        //ui.label("test");
-                    });
-            });
+                        ui.vertical(|ui| {
+    
 
+                            ui.heading("Components");
+                            for (id, (name, _), ..) in components_filtered_and_attached.iter() {
+                                if ui.button(**name).clicked() {
+                                    let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
+                                        warn!("FilterResponse doesn't exist. Aborting");
+                                        return;
+                                    };
+                                    debug_filter_response.selected_type = Some(TypeIdNameCache { type_id: **id, name: (**name).to_owned() })
+                                    
+                                };
+                            }
+                        });
+                    });
+                });
+
+            });
+            egui::SidePanel::right("right")
+            .show_inside(ui, |ui| {
+                egui::ScrollArea::new(true)
+                .show(ui, |ui| {
+                    ui.vertical(|ui| {
+                        if let Some(resource) = debug_filter_response.selected_type {
+                            ui.heading(&resource.name);
+                            if components_filtered.contains_key(&resource.type_id) {
+                                let mut queue = CommandQueue::default();
+        
+                                let Some((_, entities)) = components_filtered_and_attached.get(&resource.type_id) else {return;};
+        
+                                for entity in entities {
+                                    let name = entity.to_string();
+                
+                                    ui.label(name);
+                
+                                    ui_for_component(
+                                        &mut world.into(),
+                                        Some(&mut queue),
+                                        entity.clone(),
+                                        ui,
+                                        egui::Id::new(entity),
+                                        &type_registry,
+                                        &resource
+                                    );
+                                }
+                
+                                queue.apply(world);
+                            }
+                            if resources_filtered.contains_key(&resource.type_id) {
+                                ui_for_resource(world, ui, &type_registry, &resource);
+                            }
+                        }
+                    });
+                })
+            });
 
         });
     }
