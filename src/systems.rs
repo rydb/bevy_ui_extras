@@ -1,5 +1,7 @@
 
 
+use bevy_diagnostic::DiagnosticsStore;
+use bevy_diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_inspector_egui::bevy_inspector::guess_entity_name;
 use bevy_state::prelude::*;
 use bevy_input::prelude::*;
@@ -16,38 +18,54 @@ use bevy_window::PresentMode;
 use bevy_window::PrimaryWindow;
 use bevy_window::Window;
 use bevy_window::WindowResolution;
+use colorgrad::Gradient;
+use egui::Color32;
+use egui::FontFamily;
+use egui::FontId;
+use egui::RichText;
 use egui::Ui;
 use states::DebugMenuState;
 
 use super::*;
 //use crate::ui_for_entity_components;
 
-pub fn nested_windows_test(
+pub fn performance_visualizer_test(
     mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
+    diagnostics: Res<DiagnosticsStore>
 ) {
+    let font = FontId::new(20.0, FontFamily::default());
     for mut context in primary_window.iter_mut() {
-        egui::Window::new("sub windows test")
+        egui::Window::new("app performance visualizer")
         .show(context.get_mut(), |ui| {
-            egui::SidePanel::left("left")
-            .width_range(80.0..=200.0)
-            .show_inside(ui, |ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    ui.label("left left left \n".repeat(500))
-                }); 
+            diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS)
+            .map(|diag| {
+                let fps = diag.value().unwrap_or_default().round();
+                
+                let grad = colorgrad::GradientBuilder::new()
+                .html_colors(&["deeppink", "gold", "seagreen"])
+                .domain(&[0.0, 100.0])
+                .build::<colorgrad::LinearGradient>().unwrap();
+            
+                let color = grad.at(fps as f32).to_array()
+                // convert from 0-1 scale to 255 scale for egui
+                .map(|n| n * 255.0)
+                .map(|n| n as u8);
+                println!("color is {:#?}", color);
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new("FPS: ").font(font.clone()));
+                    ui.label(
+                        RichText::new(fps.to_string())
+                        .color(Color32::from_rgba_unmultiplied(color[0], color[1], color[2], color[3]))
+                        .font(font.clone())
+                    )
+                })
             });
-            egui::CentralPanel::default()
-            .show_inside(ui, |ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    ui.label("Central Central Central \n".repeat(500))
-                }); 
-            });
-            egui::SidePanel::right("right")
-            .width_range(80.0..=200.0)
-            .show_inside(ui, |ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    ui.label("right right right \n".repeat(500))
-                }); 
-            })
+            // for (i, diag) in diagnostics.iter().enumerate() {
+                
+                
+            //     ui.label(format!("Diag {:#}: {:#?}", i, diag));
+            // }
+            //ui.label(format!("{:#}", diagnostics.iter))
         });
     }
 }
@@ -73,10 +91,10 @@ pub fn debug_menu(world: &mut World) {
 
     let window_style = world.get_resource::<R>().unwrap_or(&R::default()).frame;
 
-    let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world) else {
-        warn!("multiple \"primary\" windows found. This is not supported. Aborting");
-        return;
-    };
+    let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world)
+    .inspect_err(|err| {
+        warn!("No singleton primary window found. Aborting. Reason: {:#}", err);
+    }) else {return;};
     let mut egui_context = egui_context_check.clone();
 
     //let components = world.components().iter().map(|n| n.name() );//.iter().filter_map(|n| n.type_id());

@@ -1,8 +1,9 @@
+use bevy_diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_state::prelude::*;
 use bevy_app::{Plugin, Update};
 use bevy_ecs::prelude::*;
 
-use crate::manage_debug_menu_state;
+use crate::{manage_debug_menu_state, performance_visualizer_test};
 use crate::{debug_menu, states::DebugMenuState, FilterResponse, UiExtrasKeybinds};
 
 /// plugin for general debugging 
@@ -20,6 +21,9 @@ impl Plugin for UiExtrasDebug {
         //.register_type::<Pane>()
         .add_systems(Update, debug_menu.run_if(in_state(DebugMenuState::Open)))
         .add_systems(Update, manage_debug_menu_state)
+        .add_systems(Update, performance_visualizer_test)
+        .add_plugins(FrameTimeDiagnosticsPlugin)
+        //.add_plugins(Diag)
         ;
     }
 }
