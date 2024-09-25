@@ -4,7 +4,6 @@ use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 
 use bevy_egui::EguiContext;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_state::app::StatesPlugin;
 use bevy_ui_extras::*;
 use bevy_window::PrimaryWindow;
 use strum::IntoEnumIterator;

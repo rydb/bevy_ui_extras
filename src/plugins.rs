@@ -1,13 +1,9 @@
-use bevy_ecs::system::ExclusiveSystemParamFunction;
-use bevy_state::app::StatesPlugin;
 use bevy_state::prelude::*;
-use bevy_app::prelude::*;
 use bevy_app::{Plugin, Update};
 use bevy_ecs::prelude::*;
-use egui_tiles::{TileId, Tree};
 
 use crate::manage_debug_menu_state;
-use crate::{debug_menu, states::DebugMenuState, FilterResponse, Pane, SelectedComponentsUi, UiExtrasKeybinds};
+use crate::{debug_menu, states::DebugMenuState, FilterResponse, UiExtrasKeybinds};
 
 /// plugin for general debugging 
 pub struct UiExtrasDebug;
@@ -19,9 +15,9 @@ impl Plugin for UiExtrasDebug {
         .init_resource::<UiExtrasKeybinds>()
         .register_type::<UiExtrasKeybinds>()
         .init_resource::<FilterResponse>()
-        .init_resource::<SelectedComponentsUi>()
+        //.init_resource::<SelectedComponentsUi>()
         .register_type::<FilterResponse>()
-        .register_type::<Pane>()
+        //.register_type::<Pane>()
         .add_systems(Update, debug_menu.run_if(in_state(DebugMenuState::Open)))
         .add_systems(Update, manage_debug_menu_state)
         ;

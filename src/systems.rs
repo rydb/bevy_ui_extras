@@ -1,9 +1,8 @@
 
 
+use bevy_inspector_egui::bevy_inspector::guess_entity_name;
 use bevy_state::prelude::*;
 use bevy_input::prelude::*;
-use bevy_ecs::component;
-use bevy_ecs::reflect::ReflectComponentFns;
 use bevy_ecs::world::CommandQueue;
 use bevy_input::ButtonInput;
 use bevy_log::warn;
@@ -84,7 +83,7 @@ pub fn debug_menu(world: &mut World) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
     
-    let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
+    let Some(debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
         warn!("FilterResponse doesn't exist. Aborting");
         return;
     };
@@ -152,7 +151,9 @@ pub fn debug_menu(world: &mut World) {
         .collect::<HashMap<_, _>>();
     {
         egui::Window::new("debug_menu")
+        
         .frame(window_style)
+        //.auto_sized()
         //.scroll(true)
         .show(egui_context.get_mut(), |ui| {
             if ui.button("clear").clicked() {
@@ -175,8 +176,11 @@ pub fn debug_menu(world: &mut World) {
                 //debug_filter_response.filter = debug_filter_response.filter.to_lowercase();
 
             });
-            egui::SidePanel::left("left2")
+            egui::SidePanel::left("Resources")
+            .frame(window_style)
             .show_inside(ui, |ui| {
+                let screen_size = ui.ctx().screen_rect().size();
+                ui.set_max_size(screen_size);
                 egui::ScrollArea::new(true)
                 .show(ui, |ui| {
                     ui.heading("Resources");
@@ -192,8 +196,13 @@ pub fn debug_menu(world: &mut World) {
                     }
                 });
             });
-            egui::SidePanel::left("left")
+            egui::SidePanel::left("Components")
+            .frame(window_style)
+
             .show_inside(ui, |ui| {
+                let screen_size = ui.ctx().screen_rect().size();
+                ui.set_max_size(screen_size);
+                
                 egui::ScrollArea::new(true)
                 .show(ui, |ui| {
                     ui.horizontal(|ui| {
@@ -216,8 +225,18 @@ pub fn debug_menu(world: &mut World) {
                 });
 
             });
-            egui::SidePanel::right("right")
+            egui::SidePanel::left("results")
+            .frame(window_style)
             .show_inside(ui, |ui| {
+
+
+                let screen_size = ui.ctx().screen_rect().size();
+                ui.set_max_size(screen_size);
+                // let x_min = ui.ctx().used_rect().size().x;
+                // let x_max = ui.ctx().screen_rect().size().x;
+                // ui.set_width_range(0.0..=x_max);
+
+
                 egui::ScrollArea::new(true)
                 .show(ui, |ui| {
                     ui.vertical(|ui| {
@@ -229,8 +248,7 @@ pub fn debug_menu(world: &mut World) {
                                 let Some((_, entities)) = components_filtered_and_attached.get(&resource.type_id) else {return;};
         
                                 for entity in entities {
-                                    let name = entity.to_string();
-                
+                                    let name = guess_entity_name(&world, *entity);
                                     ui.label(name);
                 
                                     ui_for_component(
