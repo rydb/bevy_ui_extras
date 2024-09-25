@@ -33,3 +33,8 @@ strum_macros = "0.26"
 
 [dev-dependencies]
 bevy = {version = "0.14", features = ["dynamic_linking"]}
+
+
+[dependencies.winit]
+version = "=0.30.4"
+features = ["default"]
