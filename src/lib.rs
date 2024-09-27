@@ -7,6 +7,8 @@ use bevy_inspector_egui::reflect_inspector::{Context, InspectorUi};
 use bevy_inspector_egui::restricted_world_view::RestrictedWorldView;
 use bevy_log::warn;
 use bevy_reflect::*;
+use std::hash::Hash;
+
 
 pub mod components;
 pub mod resources;
@@ -36,11 +38,18 @@ pub use tables::*;
 // pub use tree::*;
 
 /// helper struct for keeping name and type_id together after type erasing a type.
-#[derive(Reflect, Clone, Debug)]
+#[derive(Reflect, Clone, PartialEq, Hash, Eq, Debug)]
 pub struct TypeIdNameCache {
     pub(crate) type_id: TypeId,
     pub(crate) name:  String,
 }
+
+// impl Hash for TypeIdNameCache {
+//     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+//         self.type_id.hash(state);
+//         self.name.hash(state);
+//     }
+// }
 
 impl TypeIdNameCache {
     pub fn type_id(&self) -> TypeId {
