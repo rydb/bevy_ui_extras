@@ -20,6 +20,21 @@ impl Default for WindowStyleFrame {
         }
     }
 }
+#[derive(Resource)]
+pub struct ShowAppStatus(pub bool);
+impl Default for ShowAppStatus {
+    fn default() -> Self {
+        Self(false)
+    }
+}
+#[derive(Resource)]
+pub(crate) struct FocusOnDebugFilter(pub bool);
+
+impl Default for FocusOnDebugFilter {
+    fn default() -> Self {
+        Self(false)
+    }
+}
 
 #[derive(Resource, Reflect, Default, Clone)]
 pub struct FilterResponse {
@@ -30,7 +45,10 @@ pub struct FilterResponse {
 #[derive(Resource, Reflect)]
 #[reflect(Resource)]
 pub struct UiExtrasKeybinds {
-    pub toggle_debug_menu: KeyCode
+    /// keyibnd to toggle debug menu on and off. 
+    pub toggle_debug_menu: KeyCode,
+    /// keybind to quickly open the debug menu and filter for specific components/resources
+    pub filter_quick_focus: Vec<KeyCode>
 }
 
 #[derive(Resource)]
@@ -39,7 +57,8 @@ pub struct DebugMenuToggle(pub bool);
 impl Default for UiExtrasKeybinds {
     fn default() -> Self {
         Self {
-            toggle_debug_menu: KeyCode::AltLeft
+            toggle_debug_menu: KeyCode::AltLeft,
+            filter_quick_focus: vec![KeyCode::ControlLeft, KeyCode::KeyF]
         }
     }
 }

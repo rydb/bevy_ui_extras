@@ -30,9 +30,12 @@ use states::DebugMenuState;
 use super::*;
 //use crate::ui_for_entity_components;
 
-pub fn performance_visualizer_test(
-    mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
-    diagnostics: Res<DiagnosticsStore>
+/// converts to egui color
+
+pub fn display_app_status(
+    //mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
+    ui: &mut Ui,
+    diagnostics: &DiagnosticsStore
 ) {
     let font = FontId::new(20.0, FontFamily::default());
     
@@ -47,104 +50,103 @@ pub fn performance_visualizer_test(
     .build::<colorgrad::LinearGradient>().unwrap();
 
     let gray = Color32::GRAY;
+    let fps = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS)
+    .map(|diag| diag.value())
+    .and_then(|n| n);
+    let fps_color = fps
+    .map(|n| {
+        grad.at(n as f32).to_array()
+        .map(|n| n * 255.0)
+        .map(|n| n as u8)
+    })
+    .map_or_else(|| gray, |n| {
+        Color32::from_rgba_unmultiplied(n[0], n[1], n[2], n[3])
+    })
+    ;
+    ui.horizontal(|ui| {
+        ui.label(RichText::new("FPS:").font(font.clone()));
+        ui.label(
+            RichText::new(fps.map(|n| n.round().to_string()).unwrap_or("???".to_owned()))
+            .color(fps_color)
+            .font(font.clone())
+        )
+    });
 
-    for mut context in primary_window.iter_mut() {
-        egui::Window::new("app performance visualizer")
-        .show(context.get_mut(), |ui| {
-            
+    let cpu_usage = diagnostics.get(&SystemInformationDiagnosticsPlugin::CPU_USAGE)
+    .map(|diag| diag.value())
+    .and_then(|n| n);
+    let cpu_color = cpu_usage
+    .map(|n| {
+        rev_grad.at(n as f32).to_array()
+        .map(|n| n * 255.0)
+        .map(|n| n as u8)
+    })
+    .map_or_else(|| gray, |n| {
+        Color32::from_rgba_unmultiplied(n[0], n[1], n[2], n[3])
+    })
+    ;
 
-            let fps = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS)
-            .map(|diag| diag.value())
-            .and_then(|n| n);
-            let fps_color = fps
-            .map(|n| {
-                grad.at(n as f32).to_array()
-                .map(|n| n * 255.0)
-                .map(|n| n as u8)
-            })
-            .map_or_else(|| gray, |n| {
-                Color32::from_rgba_unmultiplied(n[0], n[1], n[2], n[3])
-            })
-            ;
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("FPS:").font(font.clone()));
-                ui.label(
-                    RichText::new(fps.map(|n| n.to_string()).unwrap_or("???".to_owned()))
-                    .color(fps_color)
-                    .font(font.clone())
-                )
-            });
-
-            let cpu_usage = diagnostics.get(&SystemInformationDiagnosticsPlugin::CPU_USAGE)
-            .map(|diag| diag.value())
-            .and_then(|n| n);
-            let cpu_color = cpu_usage
-            .map(|n| {
-                rev_grad.at(n as f32).to_array()
-                .map(|n| n * 255.0)
-                .map(|n| n as u8)
-            })
-            .map_or_else(|| gray, |n| {
-                Color32::from_rgba_unmultiplied(n[0], n[1], n[2], n[3])
-            })
-            ;
-
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("CPU usage:").font(font.clone()));
-                ui.label(
-                    RichText::new(cpu_usage.map(|n| n.to_string()).unwrap_or("???".to_owned()) + "%")
-                    .color(cpu_color)
-                    .font(font.clone())
-                )
-            });
-            let ram_usage = diagnostics.get(&SystemInformationDiagnosticsPlugin::MEM_USAGE)
-            .map(|diag| diag.value())
-            .and_then(|n| n);
-            
-            let ram_color = ram_usage
-            .map(|n| {
-                rev_grad.at(n as f32).to_array()
-                .map(|n| n * 255.0)
-                .map(|n| n as u8)
-            })
-            .map_or_else(|| gray, |n| {
-                Color32::from_rgba_unmultiplied(n[0], n[1], n[2], n[3])
-            });
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("RAM usage:").font(font.clone()));
-                ui.label(
-                    RichText::new(ram_usage.map(|n| n.to_string()).unwrap_or("???".to_owned()) + "%")
-                    .color(ram_color)
-                    .font(font.clone())
-                )
-            });
+    ui.horizontal(|ui| {
+        ui.label(RichText::new("CPU usage:").font(font.clone()));
+        ui.label(
+            RichText::new(cpu_usage.map(|n| n.to_string()).unwrap_or("???".to_owned()) + "%")
+            .color(cpu_color)
+            .font(font.clone())
+        )
+    });
+    let ram_usage = diagnostics.get(&SystemInformationDiagnosticsPlugin::MEM_USAGE)
+    .map(|diag| diag.value())
+    .and_then(|n| n);
+    
+    let ram_color = ram_usage
+    .map(|n| {
+        rev_grad.at(n as f32).to_array()
+        .map(|n| n * 255.0)
+        .map(|n| n as u8)
+    })
+    .map_or_else(|| gray, |n| {
+        Color32::from_rgba_unmultiplied(n[0], n[1], n[2], n[3])
+    });
+    ui.horizontal(|ui| {
+        ui.label(RichText::new("RAM usage:").font(font.clone()));
+        ui.label(
+            RichText::new(ram_usage.map(|n| n.to_string()).unwrap_or("???".to_owned()) + "%")
+            .color(ram_color)
+            .font(font.clone())
+        )
+    });
 
 
-            
-        });
-    }
+    
 }
 
-pub fn manage_debug_menu_state(
+pub(crate) fn manage_debug_menu_state(
     menu_controls: Res<UiExtrasKeybinds>,
-    buttons: Res<ButtonInput<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut debug_menu_state_next: ResMut<NextState<DebugMenuState>>,
-    debug_menu_state: Res<State<DebugMenuState>>
-
+    debug_menu_state: Res<State<DebugMenuState>>,
+    mut focus_on_filter: ResMut<FocusOnDebugFilter>
 ) {
-    if buttons.just_pressed(menu_controls.toggle_debug_menu) {
-        
+
+    if keys.just_pressed(menu_controls.toggle_debug_menu) {
       match debug_menu_state.get() {
         DebugMenuState::Open => debug_menu_state_next.set(DebugMenuState::Closed),
         DebugMenuState::Closed => debug_menu_state_next.set(DebugMenuState::Open),
           }
     }
+    if keys.any_just_pressed(menu_controls.filter_quick_focus.clone()) {
+        debug_menu_state_next.set(DebugMenuState::Open);
+        focus_on_filter.0 = true;
+    }
+
 }
 
 pub fn debug_menu(world: &mut World) {
     type R = WindowStyleFrame;
 
     let window_style = world.get_resource::<R>().unwrap_or(&R::default()).frame;
+
+
 
     let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world)
     .inspect_err(|err| {
@@ -222,6 +224,7 @@ pub fn debug_menu(world: &mut World) {
                 
         })
         .collect::<HashMap<_, _>>();
+    
     {
         egui::Window::new("debug_menu")
         
@@ -229,6 +232,22 @@ pub fn debug_menu(world: &mut World) {
         //.auto_sized()
         //.scroll(true)
         .show(egui_context.get_mut(), |ui| {
+
+            
+            let mut show_app = false;
+            if let Some(mut app_status) = world.get_resource_mut::<ShowAppStatus>() {
+                if ui.button("show app status").clicked() {
+                    app_status.0 ^= true;
+                }
+                show_app = app_status.0;
+            }
+            if let Some(diagnostics) = world.get_resource::<DiagnosticsStore>(){
+                if show_app {
+                    ui.horizontal(|ui| {
+                        display_app_status(ui, diagnostics);
+                    });
+                }
+            }
             if ui.button("clear").clicked() {
                 let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
                     warn!("FilterResponse doesn't exist. Aborting");
@@ -245,7 +264,13 @@ pub fn debug_menu(world: &mut World) {
                     warn!("FilterResponse doesn't exist. Aborting");
                     return;
                 };
-                ui.text_edit_singleline(&mut debug_filter_response.filter);
+                let filter = ui.text_edit_singleline(&mut debug_filter_response.filter);
+                if let Some(mut new_focus_request) = world.get_resource_mut::<FocusOnDebugFilter>() {
+                    if new_focus_request.0 == true {
+                        filter.request_focus();
+                        new_focus_request.0 = false;
+                    }
+                }
                 //debug_filter_response.filter = debug_filter_response.filter.to_lowercase();
 
             });
