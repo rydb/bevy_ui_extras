@@ -165,7 +165,7 @@ pub fn ui_for_components(world: &mut World, type_registry: &TypeRegistry, ui: &m
             ui,
             egui::Id::new(entity),
             &type_registry,
-            component
+            &vec![&component]
         );
     }
 
@@ -180,58 +180,61 @@ pub fn ui_for_component(
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
-    component: &TypeIdNameCache,
+    components: &Vec<&TypeIdNameCache>,
 ) {
-    //let component = TypeIdNameCache::new_typed::<T>();
-    let Some((name, component_id, component_type_id, size)) = component_info_for(world, component) else {return;};
+    for component in components.iter() {
+        let Some((name, component_id, component_type_id, size)) = component_info_for(world, component) else {return;};
     
-    let id = id.with(component_id);
-
-    let header = egui::CollapsingHeader::new(&name).id_source(id).default_open(true);
-
-    let Some(component_type_id) = component_type_id else {return;};
-
-    if size == 0 {
-        header.show(ui, |_| {});
-        return;
-    }
-
-    // create a context with access to the world except for the currently viewed component
-    let (mut component_view, world) = world.split_off_component((entity, component_type_id));
-    let mut cx = Context {
-        world: Some(world),
-        #[allow(clippy::needless_option_as_deref)]
-        queue: queue.as_deref_mut(),
-    };
-
-    let (value, is_changed, set_changed) = match component_view.get_entity_component_reflect(
-        entity,
-        component_type_id,
-        type_registry,
-    ) {
-        Ok(value) => value,
-        Err(..) => {
-            //header.show(ui, |ui| errors::show_error(e, ui, &name));
+        let id = id.with(component_id);
+    
+        let header = egui::CollapsingHeader::new(&name).id_source(id).default_open(true);
+    
+        let Some(component_type_id) = component_type_id else {return;};
+    
+        if size == 0 {
+            header.show(ui, |_| {});
             return;
         }
-    };
-
-    if is_changed {
-        #[cfg(feature = "highlight_changes")]
-        set_highlight_style(ui);
+    
+        // create a context with access to the world except for the currently viewed component
+        let (mut component_view, world) = world.split_off_component((entity, component_type_id));
+        let mut cx = Context {
+            world: Some(world),
+            #[allow(clippy::needless_option_as_deref)]
+            queue: queue.as_deref_mut(),
+        };
+    
+        let (value, is_changed, set_changed) = match component_view.get_entity_component_reflect(
+            entity,
+            component_type_id,
+            type_registry,
+        ) {
+            Ok(value) => value,
+            Err(e) => {
+                //header.show(ui, |ui| errors::show_error(e, ui, &name));
+                //ui.label(format!("{:#?}", e));
+                continue;
+            }
+        };
+    
+        if is_changed {
+            #[cfg(feature = "highlight_changes")]
+            set_highlight_style(ui);
+        }
+    
+        header.show(ui, |ui| {
+            ui.reset_style();
+    
+            let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
+                .ui_for_reflect_with_options(value, ui, id.with(component_id), &());
+    
+            if inspector_changed {
+                set_changed();
+            }
+        });
+        ui.reset_style();
     }
 
-    header.show(ui, |ui| {
-        ui.reset_style();
-
-        let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
-            .ui_for_reflect_with_options(value, ui, id.with(component_id), &());
-
-        if inspector_changed {
-            set_changed();
-        }
-    });
-    ui.reset_style();
     
 }
 

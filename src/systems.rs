@@ -1,5 +1,7 @@
 
 
+use std::collections::BTreeSet;
+
 use bevy_diagnostic::DiagnosticsStore;
 use bevy_diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_diagnostic::SystemInformationDiagnosticsPlugin;
@@ -24,13 +26,20 @@ use egui::Color32;
 use egui::FontFamily;
 use egui::FontId;
 use egui::RichText;
+use egui::Slider;
 use egui::Ui;
 use states::DebugMenuState;
+use strum::IntoEnumIterator;
 
 use super::*;
 //use crate::ui_for_entity_components;
 
 /// converts to egui color
+
+// pub enum Conditions  {
+//     AND,
+//     OR,
+// }
 
 pub fn display_app_status(
     //mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
@@ -353,8 +362,13 @@ pub fn debug_menu(world: &mut World) {
                                         debug_filter_response.selected_type.clear();
                                     }
                                     
-                                    debug_filter_response.selected_type.insert(**id, type_id_cache);
-                                    
+
+                                    if debug_filter_response.selected_type.get(*id).is_some() {
+                                        debug_filter_response.selected_type.remove(*id);
+                                    } else {
+                                        debug_filter_response.selected_type.insert(**id, type_id_cache);
+                                    }
+
                                 };
                             }
                         });
@@ -362,55 +376,121 @@ pub fn debug_menu(world: &mut World) {
                 });
 
             });
-            for (i, (_, resource)) in debug_filter_response.selected_type.iter().enumerate() {
-                egui::SidePanel::left(i.to_string())
-                .frame(window_style)
-                .show_inside(ui, |ui| {
-    
-    
-                    let screen_size = ui.ctx().screen_rect().size();
-                    ui.set_max_size(screen_size);
-                    // let x_min = ui.ctx().used_rect().size().x;
-                    // let x_max = ui.ctx().screen_rect().size().x;
-                    // ui.set_width_range(0.0..=x_max);
-    
-    
-                    egui::ScrollArea::new(true)
-                    .show(ui, |ui| {
-                        ui.vertical(|ui| {
-                            //if let Some(resource) = debug_filter_response.selected_type {
-                            //for (_, resource) in debug_filter_response.selected_type.iter() {
-                                ui.heading(&resource.name);
-                                if components_filtered.contains_key(&resource.type_id) {
-                                    let mut queue = CommandQueue::default();
+            let Some(mut match_mode) = world.get_resource_mut::<ComponentFilterMode>() else {
+                warn!("ComponentFilterMode doesn't exist. Aborting");
+                return;
+            };
             
-                                    let Some((_, entities)) = components_filtered_and_attached.get(&resource.type_id) else {return;};
+            ui.horizontal(|ui| {
+                for variant in ComponentFilterMode::iter() {
+                    let color = match *match_mode == variant {
+                        true => Color32::WHITE,
+                        false => Color32::GRAY
+                    };
+
+                    if ui.button(RichText::new(variant.to_string()).color(color)).clicked() {
+                        *match_mode = variant
+                    }
+                }
+            });
+            // ui.add(
+            //     Slider::new(&mut 0, 0..=100)
+                
+            // );
+            let selected_components = debug_filter_response.selected_type.iter()
+            .filter(|(_, resource)| components_filtered.contains_key(&resource.type_id))
+            .map(|(_, resource)| resource )
+            .collect::<Vec<_>>();
+
+            let selected_resources = debug_filter_response.selected_type.iter()
+            .filter(|(_, resource)| resources_filtered.contains_key(&resource.type_id))
+            .map(|(_, resource)| resource )
+            .collect::<Vec<_>>();          
             
-                                    for entity in entities {
-                                        let name = guess_entity_name(&world, *entity);
-                                        ui.label(name);
-                    
-                                        ui_for_component(
-                                            &mut world.into(),
-                                            Some(&mut queue),
-                                            entity.clone(),
-                                            ui,
-                                            egui::Id::new(entity),
-                                            &type_registry,
-                                            &resource
-                                        );
+            
+            egui::SidePanel::left("results".to_string())
+            .frame(window_style)
+            .show_inside(ui, |ui| {
+
+
+                let screen_size = ui.ctx().screen_rect().size();
+                ui.set_max_size(screen_size);
+                // let x_min = ui.ctx().used_rect().size().x;
+                // let x_max = ui.ctx().screen_rect().size().x;
+                // ui.set_width_range(0.0..=x_max);
+
+
+                egui::ScrollArea::new(true)
+                .show(ui, |ui| {
+                    ui.vertical(|ui| {
+                        let mut queue = CommandQueue::default();
+                        let mut entities: BTreeSet<Entity> = BTreeSet::new();
+                        
+                        let Some(match_mode) = world.get_resource::<ComponentFilterMode>() else {
+                            warn!("ComponentFilterMode doesn't exist. Aborting");
+                            return;
+                        };
+
+                        match match_mode {
+                            ComponentFilterMode::OR => {
+                                let found = selected_components.iter()
+                                .filter_map(|component| components_filtered_and_attached.get(&component.type_id))
+                                .map(|(_, e)| e);
+                                
+                                for found_entities in found.into_iter() {
+                                    for found_entity in found_entities.into_iter() {
+                                        entities.insert(found_entity.clone());
                                     }
-                    
-                                    queue.apply(world);
+                
                                 }
-                                if resources_filtered.contains_key(&resource.type_id) {
-                                    ui_for_resource(world, ui, &type_registry, &resource);
+                            },
+                            ComponentFilterMode::AND => {
+                                let found = selected_components.iter()
+                                .filter_map(|component| components_filtered_and_attached.get(&component.type_id))
+                                .map(|(_, e)| e);
+
+                                for found_entities in found.into_iter() {
+                                    for found_entity in found_entities.into_iter() {
+                                        let e = *found_entity;
+                                        if selected_components.iter()
+                                        .all(|comp| world.entity(e).contains_type_id(comp.type_id)) {
+                                            entities.insert(e);
+                                        }
+
+                                    }
+                
                                 }
-                            //}
-                        });
-                    })
-                });
-            }
+
+                            },
+
+                        }
+
+
+                        for entity in entities {
+                            let name = guess_entity_name(&world, entity);
+                            ui.label(name);
+        
+                            ui_for_component(
+                                &mut world.into(),
+                                Some(&mut queue),
+                                entity.clone(),
+                                ui,
+                                egui::Id::new(entity),
+                                &type_registry,
+                                &selected_components
+                            );
+                        }
+        
+                        queue.apply(world);
+                        //}
+                        for resource in selected_resources.iter() {
+                            ui_for_resource(world, ui, &type_registry, &resource);
+
+                        }
+                        //}
+                    });
+                })
+            });
 
 
         });
@@ -563,7 +643,7 @@ pub fn visualize_components_for<T: Component + Reflect>(display: Display) -> imp
                         ui,
                         egui::Id::new(entity),
                         &type_registry,
-                        &component
+                        &vec![&component]
                     );
                 }
 

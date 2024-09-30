@@ -7,8 +7,18 @@ use bevy_ecs::system::Resource;
 use bevy_reflect::Reflect;
 use bevy_utils::HashMap;
 use egui::Frame;
+use strum_macros::{Display, EnumIter};
 
 use crate::{stylesheets::DEBUG_FRAME_STYLE, TypeIdNameCache};
+
+#[derive(Resource, Default, EnumIter, Display, PartialEq, Eq)]
+pub enum ComponentFilterMode {
+    AND,
+    #[default]
+    OR,
+}
+
+// pubs struct ComponentFilterMode()
 
 /// the style that egui windows for this library use. See [`stylesheets.rs`] for what those look like.
 #[derive(Resource)]
