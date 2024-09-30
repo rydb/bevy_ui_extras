@@ -191,10 +191,7 @@ pub fn ui_for_component(
     
         let Some(component_type_id) = component_type_id else {return;};
     
-        if size == 0 {
-            header.show(ui, |_| {});
-            return;
-        }
+
     
         // create a context with access to the world except for the currently viewed component
         let (mut component_view, world) = world.split_off_component((entity, component_type_id));
@@ -210,13 +207,18 @@ pub fn ui_for_component(
             type_registry,
         ) {
             Ok(value) => value,
-            Err(e) => {
+            Err(_) => {
                 //header.show(ui, |ui| errors::show_error(e, ui, &name));
                 //ui.label(format!("{:#?}", e));
                 continue;
             }
         };
     
+        if size == 0 {
+            header.show(ui, |_| {});
+            return;
+        }
+
         if is_changed {
             #[cfg(feature = "highlight_changes")]
             set_highlight_style(ui);

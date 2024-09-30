@@ -26,7 +26,7 @@ use egui::Color32;
 use egui::FontFamily;
 use egui::FontId;
 use egui::RichText;
-use egui::Slider;
+use egui::Stroke;
 use egui::Ui;
 use states::DebugMenuState;
 use strum::IntoEnumIterator;
@@ -161,12 +161,11 @@ pub(crate) fn manage_debug_menu_state(
 
 }
 
+
 pub fn debug_menu(world: &mut World) {
     type R = WindowStyleFrame;
 
     let window_style = world.get_resource::<R>().unwrap_or(&R::default()).frame;
-
-
 
     let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world)
     .inspect_err(|err| {
@@ -184,7 +183,7 @@ pub fn debug_menu(world: &mut World) {
     };
     let debug_filter_response = debug_filter_response.clone();
 
-    
+    //matcher.fuzzy(choice, pattern, with_pos)
     let resources_filtered = type_registry
         .iter()
         .filter(|registration| registration.data::<ReflectResource>().is_some())
@@ -196,13 +195,13 @@ pub fn debug_menu(world: &mut World) {
             )
         })
         .filter(|(_, name, ..)| {
-            debug_filter_response.filter.len() <= 0 || name.to_lowercase().starts_with(&debug_filter_response.filter.to_lowercase())
+            debug_filter_response.filter.len() <= 0 || name.to_lowercase().contains(&debug_filter_response.filter.to_lowercase())
         }) 
-        .collect::<HashMap<TypeId, &str>>();
+        .collect::<HashMap<_, _>>();
+    
     let components_filtered = type_registry
         .iter()
-        .filter(|registration| registration.data::<ReflectComponent>().is_some())
-        
+        .filter(|registration| registration.data::<ReflectComponent>().is_some())    
         .map(|registration| {
             (
                 registration.type_id(),
@@ -210,9 +209,10 @@ pub fn debug_menu(world: &mut World) {
             )
         })
         .filter(|(_ ,name, ..)| {
-            debug_filter_response.filter.len() <= 0 || name.to_lowercase().starts_with(&debug_filter_response.filter.to_lowercase())
+            debug_filter_response.filter.len() <= 0 || name.to_lowercase().contains(&debug_filter_response.filter.to_lowercase())
         }) 
         .collect::<HashMap<_, _>>();
+    
     let components_filtered_and_attached = components_filtered
         .iter()
         .filter_map(|(id, name)| {
@@ -280,7 +280,6 @@ pub fn debug_menu(world: &mut World) {
                 debug_filter_response.selected_type.clear();
                 debug_filter_response.filter = "".to_owned();
             }
-            //if debug_filter_response.selected_type.is_none() {
             ui.horizontal(|ui| {
                 ui.label("filter: ");
                 let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
@@ -294,9 +293,29 @@ pub fn debug_menu(world: &mut World) {
                         new_focus_request.0 = false;
                     }
                 }
-                //debug_filter_response.filter = debug_filter_response.filter.to_lowercase();
+            }); 
+            // {
+            //     let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
+            //         warn!("FilterResponse doesn't exist. Aborting");
+            //         return;
+            //     }; 
+            //     {
+            //         ui.checkbox(&mut debug_filter_response.fuzzy_match_enabled, "Fuzzy Match");
+    
+            //     }
+            // }
 
-            });
+            // egui::SidePanel::left("Entities")
+            // .frame(window_style)
+            // .show_inside(ui, |ui| {
+            //     let screen_size = ui.ctx().screen_rect().size();
+            //     ui.set_max_size(screen_size);
+            //     ui.heading("Entities");
+
+            //     ui_for_world_entities_filtered::<Without<Parent>>(world, ui, true);
+
+            // });
+
             egui::SidePanel::left("Resources")
             .frame(window_style)
             .show_inside(ui, |ui| {
@@ -344,6 +363,31 @@ pub fn debug_menu(world: &mut World) {
     
 
                             ui.heading("Components");
+                            
+                            let Some(mut match_mode) = world.get_resource_mut::<ComponentFilterMode>() else {
+                                warn!("ComponentFilterMode doesn't exist. Aborting");
+                                return;
+                            };
+                            egui::Frame::default()
+                            .stroke(Stroke::new(2.0, Color32::BLACK))
+                            .outer_margin(5.0)
+                            .inner_margin(5.0)
+                            .show(ui, |ui| {
+                                ui.horizontal(|ui| {
+                                    for variant in ComponentFilterMode::iter() {
+                                        let color = match *match_mode == variant {
+                                            true => Color32::WHITE,
+                                            false => Color32::GRAY
+                                        };
+                    
+                                        if ui.button(RichText::new(variant.to_string()).color(color)).clicked() {
+                                            *match_mode = variant
+                                        }
+                                    }
+                                });
+                            });
+
+                            
                             for (id, (name, _), ..) in components_filtered_and_attached.iter() {
                                 let color = match debug_filter_response.selected_type.contains_key(*id) {
                                     true => Color32::WHITE,
@@ -376,23 +420,9 @@ pub fn debug_menu(world: &mut World) {
                 });
 
             });
-            let Some(mut match_mode) = world.get_resource_mut::<ComponentFilterMode>() else {
-                warn!("ComponentFilterMode doesn't exist. Aborting");
-                return;
-            };
-            
-            ui.horizontal(|ui| {
-                for variant in ComponentFilterMode::iter() {
-                    let color = match *match_mode == variant {
-                        true => Color32::WHITE,
-                        false => Color32::GRAY
-                    };
 
-                    if ui.button(RichText::new(variant.to_string()).color(color)).clicked() {
-                        *match_mode = variant
-                    }
-                }
-            });
+            
+
             // ui.add(
             //     Slider::new(&mut 0, 0..=100)
                 
@@ -484,6 +514,7 @@ pub fn debug_menu(world: &mut World) {
                         queue.apply(world);
                         //}
                         for resource in selected_resources.iter() {
+                            ui.label(RichText::new(resource.name.clone()).color(Color32::WHITE));
                             ui_for_resource(world, ui, &type_registry, &resource);
 
                         }

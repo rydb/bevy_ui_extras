@@ -53,6 +53,7 @@ impl Default for FocusOnDebugFilter {
 pub struct FilterResponse {
     pub filter: String,
     pub selected_type: HashMap<TypeId, TypeIdNameCache>,
+    //pub fuzzy_match_enabled: bool,
 }
 
 #[derive(Resource, Reflect)]
