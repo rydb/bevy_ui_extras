@@ -5,7 +5,10 @@ use std::collections::BTreeSet;
 use bevy_diagnostic::DiagnosticsStore;
 use bevy_diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_diagnostic::SystemInformationDiagnosticsPlugin;
+use bevy_ecs::entity::Entities;
+use bevy_inspector_egui::bevy_inspector;
 use bevy_inspector_egui::bevy_inspector::guess_entity_name;
+use bevy_inspector_egui::bevy_inspector::ui_for_world;
 use bevy_state::prelude::*;
 use bevy_input::prelude::*;
 use bevy_ecs::world::CommandQueue;
@@ -25,6 +28,7 @@ use colorgrad::Gradient;
 use egui::Color32;
 use egui::FontFamily;
 use egui::FontId;
+use egui::Rect;
 use egui::RichText;
 use egui::Stroke;
 use egui::Ui;
@@ -245,11 +249,39 @@ pub fn debug_menu(world: &mut World) {
     .map(|n| n.pressed(KeyCode::ShiftLeft))
     .unwrap_or(false);
 
+    // let Some(selected_entities) = world.get_resource_mut::<SelectedEntities>() else {
+    //     warn!("SelectedEntities doesn't exist. Aborting");
+    //     return;
+    // };
+    // let selected_entities = selected_entities.clone();
+
+    let Some(selected_widget) = world.get_resource_mut::<DebugWidgetView>() else {
+        warn!("DebugWidgetView not found. Aborting");
+        return;
+    };
+
+    let selected_widget = selected_widget.clone();
     {
-        egui::Window::new("debug_menu")
+        egui::Window::new("Debug Menu")
         
         .frame(window_style)
         .show(egui_context.get_mut(), |ui| {
+            if let Some(mut selected_widget) = world.get_resource_mut::<DebugWidgetView>() {
+                ui.horizontal(|ui| {
+                    for widget in DebugWidgetView::iter() {
+                        let color = match *selected_widget == widget {
+                            true => Color32::WHITE,
+                            false => Color32::GRAY
+                        };
+                        
+                        if ui.button(RichText::new(widget.to_string()).color(color)).clicked() {
+                            *selected_widget = widget
+                        }
+                    }
+                });
+
+            }
+
             let mut show_app = false;
             if let Some(mut app_status) = world.get_resource_mut::<ShowAppStatus>() {
                 let verb = match app_status.0 {
@@ -268,6 +300,21 @@ pub fn debug_menu(world: &mut World) {
                         display_app_status(ui, diagnostics);
                     });
                 }
+            }
+            
+            match selected_widget {
+                DebugWidgetView::EntitiesView => {
+                    egui::ScrollArea::both()
+                    .show(ui, |ui| {
+                        bevy_inspector::ui_for_world(world, ui);
+                        ui.allocate_space(ui.available_size());
+                    });
+                    return;
+
+                },
+                DebugWidgetView::ComponentsView => {
+                
+                },
             }
             if ui.button("clear").clicked() {
                 let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
@@ -310,7 +357,30 @@ pub fn debug_menu(world: &mut World) {
             //     ui.set_max_size(screen_size);
             //     ui.heading("Entities");
 
-            //     ui_for_world_entities_filtered::<Without<Parent>>(world, ui, true);
+
+
+
+            //     for entity in world.iter_entities().map(|e_ref| e_ref.id()){
+                    
+            //         let color = match selected_entities.0.contains(&entity) {
+            //             true => Color32::WHITE,
+            //             false => Color32::GRAY
+            //         };
+
+            //         let name = guess_entity_name(&world, entity);
+                    
+
+
+            //         if ui.button(RichText::new(name).color(color)).clicked() {
+                        
+            //             let Some(mut selected_entities) = world.get_resource_mut::<SelectedEntities>() else {
+            //                 warn!("SelectedEntities doesn't exist. Aborting");
+            //                 return;
+            //             };
+            //             selected_entities.0.insert(entity);
+            //         }
+            //     }
+            //     //ui_for_world_entities_filtered::<Without<Parent>>(world, ui, true);
 
             // });
 

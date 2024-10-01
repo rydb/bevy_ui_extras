@@ -18,6 +18,16 @@ pub enum ComponentFilterMode {
     OR,
 }
 
+// #[derive(Resource, Default, Clone)]
+// pub struct SelectedEntities(pub BTreeSet<Entity>);
+
+#[derive(Resource, Default, EnumIter, Display, PartialEq, Eq, Clone)]
+pub enum DebugWidgetView {
+    EntitiesView,
+    #[default]
+    ComponentsView,
+}
+
 // pubs struct ComponentFilterMode()
 
 /// the style that egui windows for this library use. See [`stylesheets.rs`] for what those look like.
