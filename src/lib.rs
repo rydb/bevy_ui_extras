@@ -7,6 +7,7 @@ use bevy_inspector_egui::reflect_inspector::{Context, InspectorUi};
 use bevy_inspector_egui::restricted_world_view::RestrictedWorldView;
 use bevy_log::warn;
 use bevy_reflect::*;
+use egui::Frame;
 use std::hash::Hash;
 
 
@@ -44,13 +45,6 @@ pub struct TypeIdNameCache {
     pub(crate) name:  String,
 }
 
-// impl Hash for TypeIdNameCache {
-//     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-//         self.type_id.hash(state);
-//         self.name.hash(state);
-//     }
-// }
-
 impl TypeIdNameCache {
     pub fn type_id(&self) -> TypeId {
         self.type_id
@@ -65,28 +59,31 @@ impl TypeIdNameCache {
             name: std::any::type_name::<T>().to_owned()
         }
     }
-    //pub(crate) fn new_untyped(type_id: TypeId, name:)
 }
 
+/// Style for debug menu widget
+pub enum UiStyle {
+    /// Sets frame to egui default.
+    Default,
+    /// see-through/glassy. 
+    BlackGlass,
+    /// Custom user-set ui style
+    Custom(Frame)
+}
 
 /// fetches the info for the componenet of type T for the given entity, if it exists. 
 pub fn component_info_for(
     world: &mut RestrictedWorldView<'_>,
     component: &TypeIdNameCache
-    //entity: Entity,
 ) -> Option<(String, ComponentId, Option<TypeId>, usize)> {
     
-    //let entity_ref = world.world().get_entity(entity)?;
-    //let x = world.split_off_components(components)
     let component_id  = match world.world().components().get_id(component.type_id) {
         Some(id) => id,
         None => {
             warn!("Could not get component id for {:#}", component.name);
             return None
         }
-    };
-    //let archetype = entity_ref.archetype();
-    
+    };    
     let info = world.world().components().get_info(component_id)?;
     
     let name = pretty_type_name::pretty_type_name_str(info.name());
@@ -102,6 +99,7 @@ pub fn component_info_for(
     );
 }
 
+/// renders ui for a given resource.
 pub fn ui_for_resource(
     world: &mut World,
     ui: &mut egui::Ui,
@@ -110,7 +108,6 @@ pub fn ui_for_resource(
 ) {
     let mut queue = CommandQueue::default();
 
-    //let resource = TypeIdNameCache::t
     let resource_type_id = resource.type_id();
     {
         // create a context with access to the world except for the current resource
@@ -138,42 +135,11 @@ pub fn ui_for_resource(
         }
     }
 
-    
-
-    queue.apply(world);
-    // for (name, type_id) in resources {
-    //     ui.collapsing(name, |ui| {
-    //         by_type_id::ui_for_resource(world, type_id, ui, name, &type_registry);
-    //     });
-    // }
-}
-
-pub fn ui_for_components(world: &mut World, type_registry: &TypeRegistry, ui: &mut egui::Ui, entities: Vec<Entity>, component: &TypeIdNameCache) {
-    //let entities_test = world.query_filtered::<Entity, With<QueryFilter
-    let mut queue = CommandQueue::default();
-    //let component = TypeIdNameCache::new_typed::<T>();
-    let name = component.name();
-
-    for entity in entities {
-
-        ui.label(name);
-
-        ui_for_component(
-            &mut world.into(),
-            Some(&mut queue),
-            entity.clone(),
-            ui,
-            egui::Id::new(entity),
-            &type_registry,
-            &vec![&component]
-        );
-    }
-
     queue.apply(world);
 }
 
-
-pub fn ui_for_component(
+/// displays ui for entity and its given components
+pub fn ui_for_components(
     world: &mut RestrictedWorldView<'_>,
     mut queue: Option<&mut CommandQueue>,
     entity: Entity,

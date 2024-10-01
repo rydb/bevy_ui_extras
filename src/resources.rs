@@ -22,15 +22,11 @@ pub enum ComponentFilterMode {
 
 /// the style that egui windows for this library use. See [`stylesheets.rs`] for what those look like.
 #[derive(Resource)]
-pub struct WindowStyleFrame {
-    pub frame: Frame,
-}
+pub struct WindowStyleFrame(pub Option<Frame>);
 
 impl Default for WindowStyleFrame {
     fn default() -> Self {
-        Self {
-            frame: DEBUG_FRAME_STYLE,
-        }
+        Self(Some(DEBUG_FRAME_STYLE))
     }
 }
 #[derive(Resource)]
@@ -56,7 +52,7 @@ pub struct FilterResponse {
     //pub fuzzy_match_enabled: bool,
 }
 
-#[derive(Resource, Reflect)]
+#[derive(Resource, Reflect, Clone)]
 #[reflect(Resource)]
 pub struct UiExtrasKeybinds {
     /// keyibnd to toggle debug menu on and off. 

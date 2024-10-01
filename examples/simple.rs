@@ -14,10 +14,12 @@ fn main() {
     .init_resource::<QuickTable<MeshAttributes>>()
     .add_plugins((DefaultPlugins, 
         WorldInspectorPlugin::new()))
-    .add_plugins(UiExtrasDebug)
+    .add_plugins(UiExtrasDebug {
+        ui_style: UiStyle::Default,
+        ..default()
+    })
 
     .add_systems(Startup, spawn_world)
-    .insert_resource(WindowStyleFrame::default())
     .add_systems(
         Update,
         (

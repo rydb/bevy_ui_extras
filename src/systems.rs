@@ -32,15 +32,9 @@ use states::DebugMenuState;
 use strum::IntoEnumIterator;
 
 use super::*;
-//use crate::ui_for_entity_components;
 
-/// converts to egui color
-
-// pub enum Conditions  {
-//     AND,
-//     OR,
-// }
-
+/// displays misc info for app status
+/// !!! CPU/RAM usage stats do not work when dynamic linking is enabled !!!
 pub fn display_app_status(
     //mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
     ui: &mut Ui,
@@ -165,13 +159,17 @@ pub(crate) fn manage_debug_menu_state(
 pub fn debug_menu(world: &mut World) {
     type R = WindowStyleFrame;
 
-    let window_style = world.get_resource::<R>().unwrap_or(&R::default()).frame;
 
     let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world)
     .inspect_err(|err| {
         warn!("No singleton primary window found. Aborting. Reason: {:#}", err);
     }) else {return;};
     let mut egui_context = egui_context_check.clone();
+
+    let window_style = world.get_resource::<R>()
+    .unwrap_or(&R::default()).0
+    .unwrap_or(Frame::window(&egui_context.get_mut().style()))
+    ;
 
     //let components = world.components().iter().map(|n| n.name() );//.iter().filter_map(|n| n.type_id());
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
@@ -183,7 +181,6 @@ pub fn debug_menu(world: &mut World) {
     };
     let debug_filter_response = debug_filter_response.clone();
 
-    //matcher.fuzzy(choice, pattern, with_pos)
     let resources_filtered = type_registry
         .iter()
         .filter(|registration| registration.data::<ReflectResource>().is_some())
@@ -252,14 +249,15 @@ pub fn debug_menu(world: &mut World) {
         egui::Window::new("debug_menu")
         
         .frame(window_style)
-        //.auto_sized()
-        //.scroll(true)
         .show(egui_context.get_mut(), |ui| {
-
-            
             let mut show_app = false;
             if let Some(mut app_status) = world.get_resource_mut::<ShowAppStatus>() {
-                if ui.button("show app status").clicked() {
+                let verb = match app_status.0 {
+                    true => "close",
+                    false => "open",
+                };
+                
+                if ui.button(format!("{:#} app status", verb)).clicked() {
                     app_status.0 ^= true;
                 }
                 show_app = app_status.0;
@@ -421,12 +419,6 @@ pub fn debug_menu(world: &mut World) {
 
             });
 
-            
-
-            // ui.add(
-            //     Slider::new(&mut 0, 0..=100)
-                
-            // );
             let selected_components = debug_filter_response.selected_type.iter()
             .filter(|(_, resource)| components_filtered.contains_key(&resource.type_id))
             .map(|(_, resource)| resource )
@@ -445,10 +437,6 @@ pub fn debug_menu(world: &mut World) {
 
                 let screen_size = ui.ctx().screen_rect().size();
                 ui.set_max_size(screen_size);
-                // let x_min = ui.ctx().used_rect().size().x;
-                // let x_max = ui.ctx().screen_rect().size().x;
-                // ui.set_width_range(0.0..=x_max);
-
 
                 egui::ScrollArea::new(true)
                 .show(ui, |ui| {
@@ -469,9 +457,8 @@ pub fn debug_menu(world: &mut World) {
                                 
                                 for found_entities in found.into_iter() {
                                     for found_entity in found_entities.into_iter() {
-                                        entities.insert(found_entity.clone());
+                                        entities.insert(*found_entity);
                                     }
-                
                                 }
                             },
                             ComponentFilterMode::AND => {
@@ -488,22 +475,17 @@ pub fn debug_menu(world: &mut World) {
                                         }
 
                                     }
-                
                                 }
-
                             },
-
                         }
-
-
                         for entity in entities {
                             let name = guess_entity_name(&world, entity);
                             ui.label(name);
         
-                            ui_for_component(
+                            ui_for_components(
                                 &mut world.into(),
                                 Some(&mut queue),
-                                entity.clone(),
+                                entity,
                                 ui,
                                 egui::Id::new(entity),
                                 &type_registry,
@@ -512,36 +494,34 @@ pub fn debug_menu(world: &mut World) {
                         }
         
                         queue.apply(world);
-                        //}
                         for resource in selected_resources.iter() {
                             ui.label(RichText::new(resource.name.clone()).color(Color32::WHITE));
                             ui_for_resource(world, ui, &type_registry, &resource);
-
                         }
-                        //}
                     });
                 })
             });
-
-
         });
     }
 }
 
-
+/// visualize all entities in a given format.
 pub fn visualize_entities_with_component<T: Component>(display: Display) -> impl Fn(&mut World) {
     type R = WindowStyleFrame;
     
     let menu_name = std::any::type_name::<T>();
 
     move |world| {
-        let window_style = world.get_resource::<R>().unwrap_or(&R::default()).frame;
 
         let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world) else {
             warn!("multiple \"primary\" windows found. This is not supported. Aborting");
             return;
         };
         let mut egui_context = egui_context_check.clone();
+
+        let window_style = world.get_resource::<R>()
+        .unwrap_or(&R::default()).0
+        .unwrap_or(Frame::window(&egui_context.get_mut().style()));
 
 
         let mut add_ui = {
@@ -580,20 +560,22 @@ pub fn visualize_entities_with_component<T: Component>(display: Display) -> impl
 
 }
 
+/// visualize a resource with a given format.
 pub fn visualize_resource<T: Resource + Reflect>(display: Display) -> impl Fn(&mut World) {
     type R = WindowStyleFrame;
     let menu_name = std::any::type_name::<T>();
 
     move |world| {
-
-        let window_style = world.get_resource::<R>().unwrap_or(&R::default()).frame;
-
         let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world) else {
             warn!("multiple \"primary\" windows found. This is not supported. Aborting");
             return;
         };
 
         let mut egui_context = egui_context_check.clone();
+
+        let window_style = world.get_resource::<R>()
+        .unwrap_or(&R::default()).0
+        .unwrap_or(Frame::window(&egui_context.get_mut().style()));
 
         let app_type_registry = world.resource::<AppTypeRegistry>().0.clone();
         let type_registry = app_type_registry.read();
@@ -635,23 +617,23 @@ pub fn visualize_resource<T: Resource + Reflect>(display: Display) -> impl Fn(&m
     }
 }
 
+/// visualize a given component with a given format.
 pub fn visualize_components_for<T: Component + Reflect>(display: Display) -> impl Fn(&mut World) {
     type R = WindowStyleFrame;
     let menu_name = std::any::type_name::<T>();
 
     move |world| {
-
-        
-        let window_style = world.get_resource::<R>().unwrap_or(&R::default()).frame;
-
         let component_entities = world.query_filtered::<Entity, With<T>>().iter(world).collect::<Vec<_>>();
 
-        //last_componenent_entity = last_componenent_entity.clone();
         let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world) else {
             warn!("multiple \"primary\" windows found. This is not supported. Aborting");
             return;
         };
         let mut egui_context = egui_context_check.clone();
+
+        let window_style = world.get_resource::<R>()
+        .unwrap_or(&R::default()).0
+        .unwrap_or(Frame::window(&egui_context.get_mut().style()));
 
         let app_type_registry = world.resource::<AppTypeRegistry>().0.clone();
         let type_registry = app_type_registry.read();
@@ -667,10 +649,10 @@ pub fn visualize_components_for<T: Component + Reflect>(display: Display) -> imp
 
                     ui.label(name);
 
-                    ui_for_component(
+                    ui_for_components(
                         &mut world.into(),
                         Some(&mut queue),
-                        entity.clone(),
+                        entity,
                         ui,
                         egui::Id::new(entity),
                         &type_registry,
@@ -715,13 +697,17 @@ pub fn visualize_seperate_window_for_entities_with<T: Component>(
     let window_name = std::any::type_name::<T>();
 
     type R = WindowStyleFrame;
-    let window_style = world.get_resource::<R>().unwrap_or(&R::default()).frame;
 
     if let Ok(egui_context_check) = world
         .query_filtered::<&mut EguiContext, With<Visualize<T>>>()
         .get_single(world)
     {
         let mut egui_context = egui_context_check.clone();
+
+        let window_style = world.get_resource::<R>()
+        .unwrap_or(&R::default()).0
+        .unwrap_or(Frame::window(&egui_context.get_mut().style()));
+
         // // ui
         egui::CentralPanel::default()
             .frame(window_style)
