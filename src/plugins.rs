@@ -2,7 +2,6 @@ use bevy_diagnostic::{FrameTimeDiagnosticsPlugin, SystemInformationDiagnosticsPl
 use bevy_state::prelude::*;
 use bevy_app::{Plugin, Update};
 use bevy_ecs::prelude::*;
-use egui::{Frame, Options};
 
 use crate::{manage_debug_menu_state, ComponentFilterMode, FocusOnDebugFilter, ShowAppStatus, UiStyle, WindowStyleFrame};
 use crate::{debug_menu, states::DebugMenuState, FilterResponse, UiExtrasKeybinds};

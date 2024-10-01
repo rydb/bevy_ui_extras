@@ -333,14 +333,20 @@ pub fn debug_menu(world: &mut World) {
                                 warn!("FilterResponse doesn't exist. Aborting");
                                 return;
                             };
-                            let type_id_name_cache = TypeIdNameCache { type_id: *id, name: (*name).to_owned()};
-                            
-                            if multi_select == false {
-                                debug_filter_response.selected_type.clear();
-                            }
-                            
+                            let type_id_cache = TypeIdNameCache { type_id: *id, name: (**name).to_owned() };
 
-                            debug_filter_response.selected_type.insert( *id, type_id_name_cache); 
+                            if debug_filter_response.selected_type.get(id).is_some() {
+                                if multi_select == false {
+                                    debug_filter_response.selected_type.clear();
+                                } else {
+                                    debug_filter_response.selected_type.remove(id);
+                                }
+                            } else {
+                                if multi_select == false {
+                                    debug_filter_response.selected_type.clear();
+                                }
+                                debug_filter_response.selected_type.insert(*id, type_id_cache);
+                            }
                             
                             
                         };
@@ -399,17 +405,20 @@ pub fn debug_menu(world: &mut World) {
                                         return;
                                     };
                                     let type_id_cache = TypeIdNameCache { type_id: **id, name: (**name).to_owned() };
-                                    
-                                    if multi_select == false {
-                                        debug_filter_response.selected_type.clear();
-                                    }
-                                    
 
                                     if debug_filter_response.selected_type.get(*id).is_some() {
-                                        debug_filter_response.selected_type.remove(*id);
+                                        if multi_select == false {
+                                            debug_filter_response.selected_type.clear();
+                                        } else {
+                                            debug_filter_response.selected_type.remove(*id);
+                                        }
                                     } else {
+                                        if multi_select == false {
+                                            debug_filter_response.selected_type.clear();
+                                        }
                                         debug_filter_response.selected_type.insert(**id, type_id_cache);
                                     }
+
 
                                 };
                             }
@@ -493,11 +502,18 @@ pub fn debug_menu(world: &mut World) {
                             );
                         }
         
-                        queue.apply(world);
                         for resource in selected_resources.iter() {
                             ui.label(RichText::new(resource.name.clone()).color(Color32::WHITE));
-                            ui_for_resource(world, ui, &type_registry, &resource);
+                            ui_for_resource(
+                                world, 
+                                ui,
+                                egui::Id::new(resource.type_id), 
+                                &type_registry, 
+                                &resource
+                            );
                         }
+                        queue.apply(world);
+
                     });
                 })
             });
@@ -585,7 +601,13 @@ pub fn visualize_resource<T: Resource + Reflect>(display: Display) -> impl Fn(&m
             move |ui: &mut Ui | {
 
                 let mut queue = CommandQueue::default();
-                ui_for_resource(world, ui, &type_registry, &resource);
+                ui_for_resource(
+                    world, 
+                    ui, 
+                    egui::Id::new(resource.type_id),
+                    &type_registry, 
+                    &resource
+                );
 
                 queue.apply(world);
             }

@@ -15,7 +15,7 @@ fn main() {
     .add_plugins((DefaultPlugins, 
         WorldInspectorPlugin::new()))
     .add_plugins(UiExtrasDebug {
-        ui_style: UiStyle::Default,
+        ui_style: UiStyle::BlackGlass,
         ..default()
     })
 

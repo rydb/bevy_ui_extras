@@ -103,12 +103,15 @@ pub fn component_info_for(
 pub fn ui_for_resource(
     world: &mut World,
     ui: &mut egui::Ui,
+    id: egui::Id,
     type_registry: &TypeRegistry,
     resource: &TypeIdNameCache,
 ) {
     let mut queue = CommandQueue::default();
 
     let resource_type_id = resource.type_id();
+    let id = id.with(resource_type_id);
+
     {
         // create a context with access to the world except for the current resource
         let mut world_view = RestrictedWorldView::new(world);
@@ -129,7 +132,7 @@ pub fn ui_for_resource(
             },//return errors::show_error(err, ui, name_of_type),
         };
 
-        let changed = env.ui_for_reflect(resource, ui);
+        let changed = env.ui_for_reflect_with_options(resource, ui, id.with(resource_type_id), &());
         if changed {
             set_changed();
         }
