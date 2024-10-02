@@ -5,10 +5,8 @@ use std::collections::BTreeSet;
 use bevy_diagnostic::DiagnosticsStore;
 use bevy_diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_diagnostic::SystemInformationDiagnosticsPlugin;
-use bevy_ecs::entity::Entities;
 use bevy_inspector_egui::bevy_inspector;
 use bevy_inspector_egui::bevy_inspector::guess_entity_name;
-use bevy_inspector_egui::bevy_inspector::ui_for_world;
 use bevy_state::prelude::*;
 use bevy_input::prelude::*;
 use bevy_ecs::world::CommandQueue;
@@ -28,7 +26,6 @@ use colorgrad::Gradient;
 use egui::Color32;
 use egui::FontFamily;
 use egui::FontId;
-use egui::Rect;
 use egui::RichText;
 use egui::Stroke;
 use egui::Ui;
@@ -45,10 +42,10 @@ pub fn display_app_status(
     diagnostics: &DiagnosticsStore
 ) {
     let font = FontId::new(20.0, FontFamily::default());
-    
-    let grad = colorgrad::GradientBuilder::new()
+
+    let fps_grad = colorgrad::GradientBuilder::new()
     .html_colors(&["deeppink", "gold", "seagreen"])
-    .domain(&[0.0, 100.0])
+    .domain(&[0.0, 120.0])
     .build::<colorgrad::LinearGradient>().unwrap();
 
     let rev_grad = colorgrad::GradientBuilder::new()
@@ -62,7 +59,7 @@ pub fn display_app_status(
     .and_then(|n| n);
     let fps_color = fps
     .map(|n| {
-        grad.at(n as f32).to_array()
+        fps_grad.at(n as f32).to_array()
         .map(|n| n * 255.0)
         .map(|n| n as u8)
     })
@@ -96,7 +93,7 @@ pub fn display_app_status(
     ui.horizontal(|ui| {
         ui.label(RichText::new("CPU usage:").font(font.clone()));
         ui.label(
-            RichText::new(cpu_usage.map(|n| n.to_string()).unwrap_or("???".to_owned()) + "%")
+            RichText::new(cpu_usage.map(|n| n.round().to_string()).unwrap_or("???".to_owned()) + "%")
             .color(cpu_color)
             .font(font.clone())
         )
@@ -117,7 +114,7 @@ pub fn display_app_status(
     ui.horizontal(|ui| {
         ui.label(RichText::new("RAM usage:").font(font.clone()));
         ui.label(
-            RichText::new(ram_usage.map(|n| n.to_string()).unwrap_or("???".to_owned()) + "%")
+            RichText::new(ram_usage.map(|n| n.round().to_string()).unwrap_or("???".to_owned()) + "%")
             .color(ram_color)
             .font(font.clone())
         )
@@ -134,6 +131,7 @@ pub(crate) fn manage_debug_menu_state(
     debug_menu_state: Res<State<DebugMenuState>>,
     mut focus_on_filter: ResMut<FocusOnDebugFilter>,
     mut filter: ResMut<FilterResponse>,
+    mut debug_widget_view: ResMut<DebugWidgetView>,
 ) {
 
     if keys.just_pressed(menu_controls.toggle_debug_menu) {
@@ -149,6 +147,14 @@ pub(crate) fn manage_debug_menu_state(
     if keys.all_pressed(menu_controls.clear.clone()) && debug_menu_state.get() == &DebugMenuState::Open {
         *filter = FilterResponse::default()
     }
+
+    if keys.just_pressed(menu_controls.cycle_views) {
+        match *debug_widget_view {
+            DebugWidgetView::EntitiesView => *debug_widget_view = DebugWidgetView::ComponentsView ,
+            DebugWidgetView::ComponentsView => *debug_widget_view = DebugWidgetView::EntitiesView,
+        }
+    }
+
     // if menu_controls.clear.iter().all(|key| keys.just_pressed(*key)) {
     //     debug_menu_state_next.set(DebugMenuState::Open);
     //     focus_on_filter.0 = true;
@@ -307,7 +313,7 @@ pub fn debug_menu(world: &mut World) {
                     egui::ScrollArea::both()
                     .show(ui, |ui| {
                         bevy_inspector::ui_for_world(world, ui);
-                        ui.allocate_space(ui.available_size());
+                        //ui.allocate_space(ui.available_size());
                     });
                     return;
 

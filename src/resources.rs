@@ -70,7 +70,9 @@ pub struct UiExtrasKeybinds {
     /// keybind to quickly open the debug menu and filter for specific components/resources
     pub filter_quick_focus: BTreeSet<KeyCode>,
     /// clears all selected values in debug menu
-    pub clear: BTreeSet<KeyCode>
+    pub clear: BTreeSet<KeyCode>,
+    /// cycles between different debug view modes
+    pub cycle_views: KeyCode
 }
 
 #[derive(Resource)]
@@ -79,9 +81,10 @@ pub struct DebugMenuToggle(pub bool);
 impl Default for UiExtrasKeybinds {
     fn default() -> Self {
         Self {
-            toggle_debug_menu: KeyCode::AltLeft,
+            toggle_debug_menu: KeyCode::Backquote,
             filter_quick_focus: [KeyCode::ControlLeft, KeyCode::KeyF].into(),
             clear: [KeyCode::ControlLeft, KeyCode::KeyC].into(),
+            cycle_views: KeyCode::AltLeft
         }
     }
 }

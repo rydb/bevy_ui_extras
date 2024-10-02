@@ -1,4 +1,6 @@
 use bevy_diagnostic::{FrameTimeDiagnosticsPlugin, SystemInformationDiagnosticsPlugin};
+use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_state::prelude::*;
 use bevy_app::{Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -31,6 +33,16 @@ impl Plugin for UiExtrasDebug {
             UiStyle::Custom(frame) => WindowStyleFrame(Some(frame)),
         };
         
+        if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
+            app.add_plugins(DefaultInspectorConfigPlugin);
+        }
+        if !app.is_plugin_added::<EguiPlugin>() {
+            app.add_plugins(EguiPlugin);
+        }
+        // if !app.is_plugin_added::<InspectSchedulePlugin>() {
+        //     app.add_plugins(InspectSchedulePlugin);
+        // }
+
         app
         .init_state::<DebugMenuState>()
         .insert_resource(self.keybinds_override.clone().unwrap_or_default())

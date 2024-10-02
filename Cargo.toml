@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ui_extras"
-version = "0.11.0"
+version = "0.12.0"
 edition = "2021"
 repository = "https://github.com/rydb/bevy_ui_extras"
 readme = "README.md"
@@ -36,7 +36,7 @@ strum = "0.26"
 strum_macros = "0.26"
 
 [dev-dependencies]
-bevy = {version = "0.14", features = ["dynamic_linking"]}
+bevy = {version = "0.14"}
 
 
 [dependencies.winit]

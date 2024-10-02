@@ -12,8 +12,7 @@ use strum_macros::{Display, EnumIter};
 fn main() {
     App::new()
     .init_resource::<QuickTable<MeshAttributes>>()
-    .add_plugins((DefaultPlugins, 
-        WorldInspectorPlugin::new()))
+    .add_plugins(DefaultPlugins)
     .add_plugins(UiExtrasDebug {
         ui_style: UiStyle::BlackGlass,
         ..default()
