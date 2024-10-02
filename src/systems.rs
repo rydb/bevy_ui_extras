@@ -120,9 +120,6 @@ pub fn display_app_status(
             .font(font.clone())
         )
     });
-
-
-    
 }
 
 pub(crate) fn manage_debug_menu_state(

@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 description = "A crate containing a collection of utilities to make working with ui in bevy easier."
 
 [dependencies]
-bevy_ecs = { version = "0.14" }
+bevy_ecs = { version = "0.14", features = ["multi_threaded"]}
 bevy_utils = { version = "0.14" }
 bevy_window = "0.14"
 bevy_derive = "0.14"
@@ -17,7 +17,7 @@ bevy_log = "0.14"
 bevy_input = "0.14"
 bevy_app = "0.14"
 bevy_state = "0.14"
-bevy_diagnostic = {version = "0.14", features = ["bevy/sysinfo_plugin", "bevy/multi_threaded"]}
+bevy_diagnostic = {version = "0.14", features = ["sysinfo_plugin"]}
 bevy_hierarchy = "0.14"
 # bevy_diagnostics = "0.14"
 pretty-type-name = "1.0"
