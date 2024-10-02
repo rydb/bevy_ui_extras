@@ -41,6 +41,7 @@ pub fn display_app_status(
     ui: &mut Ui,
     diagnostics: &DiagnosticsStore
 ) {
+    let gray = Color32::GRAY;
     let font = FontId::new(20.0, FontFamily::default());
 
     let fps_grad = colorgrad::GradientBuilder::new()
@@ -53,10 +54,10 @@ pub fn display_app_status(
     .domain(&[0.0, 100.0])
     .build::<colorgrad::LinearGradient>().unwrap();
 
-    let gray = Color32::GRAY;
     let fps = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS)
     .map(|diag| diag.value())
     .and_then(|n| n);
+
     let fps_color = fps
     .map(|n| {
         fps_grad.at(n as f32).to_array()
