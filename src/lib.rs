@@ -156,7 +156,7 @@ pub fn ui_for_components(
     
         let id = id.with(component_id);
     
-        let header = egui::CollapsingHeader::new(&name).id_source(id).default_open(true);
+        let header = egui::CollapsingHeader::new(&name).id_salt(id).default_open(true);
     
         let Some(component_type_id) = component_type_id else {return;};
     

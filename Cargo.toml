@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ui_extras"
-version = "0.12.0"
+version = "0.13.0"
 edition = "2021"
 repository = "https://github.com/rydb/bevy_ui_extras"
 readme = "README.md"
@@ -28,10 +28,10 @@ colorgrad = "0.7"
 
 
 glam = "0.27"
-bevy-inspector-egui = "0.26"
-egui = "0.28"
-bevy_egui = "0.29"
-egui_extras = "0.28"
+bevy-inspector-egui = "0.27"
+egui = "0.29"
+bevy_egui = "0.30"
+egui_extras = "0.29"
 strum = "0.26"
 strum_macros = "0.26"
 
