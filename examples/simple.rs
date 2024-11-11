@@ -8,10 +8,15 @@ use bevy_window::PrimaryWindow;
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter};
 
+#[derive(Default, Deref, DerefMut, Resource)]
+pub struct DummyDebugToggle(pub bool);
+
 fn main() {
     App::new()
     .init_resource::<QuickTable<MeshAttributes>>()
     .add_plugins(DefaultPlugins)
+    .init_resource::<DummyDebugToggle>()
+    .add_plugins(DebugModeRegister::<DummyDebugToggle>::default())
     .add_plugins(UiExtrasDebug {
         ui_style: UiStyle::BlackGlass,
         ..default()

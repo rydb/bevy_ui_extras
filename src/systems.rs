@@ -1,6 +1,7 @@
 
 
 use std::collections::BTreeSet;
+use std::ops::DerefMut;
 
 use bevy_diagnostic::DiagnosticsStore;
 use bevy_diagnostic::FrameTimeDiagnosticsPlugin;
@@ -33,6 +34,19 @@ use states::DebugMenuState;
 use strum::IntoEnumIterator;
 
 use super::*;
+
+
+pub(crate) fn set_entry_to_on<T: DerefMut<Target = bool> + Resource>(
+    mut debug_mode_target: ResMut<T>,
+) {
+    **debug_mode_target = true;
+}
+
+pub(crate) fn set_entry_to_off<T: DerefMut<Target = bool> + Resource>(
+    mut debug_mode_target: ResMut<T>,
+) {
+    **debug_mode_target = false;
+}
 
 /// displays misc info for app status
 /// !!! CPU/RAM usage stats do not work when dynamic linking is enabled !!!

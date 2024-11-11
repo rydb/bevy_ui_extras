@@ -2,7 +2,6 @@
 use std::{any::TypeId, collections::BTreeSet, fmt::Debug, ops::DerefMut};
 
 use bevy_state::prelude::*;
-use bevy_app::Plugin;
 use bevy_derive::{Deref, DerefMut};
 use bevy_ecs::prelude::*;
 use bevy_input::prelude::KeyCode;
@@ -94,25 +93,9 @@ pub enum DebugModeToggle {
 pub trait DebugTarget: DerefMut<Target = bool> + Resource {}
 
 
-pub struct DebugModeRegistry<T: DerefMut<Target = bool> + Resource>(T);
 
-impl<T: DerefMut<Target = bool> + Resource> Plugin for DebugModeRegistry<T> {
-    fn build(&self, app: &mut bevy_app::App) {
-        app
-        .add_systems(OnTransition {entered: DebugModeToggle::On, exited: DebugModeToggle::Off}, set_entry_to_toggle::<T>)
-        ;
-    }
-}
 
-fn set_entry_to_toggle<T: DerefMut<Target = bool> + Resource>(
-    mut debug_mode_target: ResMut<T>,
-    debug_mode_toggle: Res<State<DebugModeToggle>>
-) {
-    match **debug_mode_toggle {
-        DebugModeToggle::On => **debug_mode_target = true,
-        DebugModeToggle::Off => **debug_mode_target = false,
-    }
-}
+
 
 impl Default for UiExtrasKeybinds {
 
