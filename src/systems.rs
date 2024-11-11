@@ -329,6 +329,10 @@ pub fn debug_menu(world: &mut World) {
                 debug_filter_response.selected_type.clear();
                 debug_filter_response.filter = "".to_owned();
             }
+            if let Some(mut debug_mode_toggle) = world.get_resource_mut::<DebugMenuToggle>() {
+                ui.checkbox(&mut debug_mode_toggle.0, "Toggle Debug Mode");
+            } 
+
             ui.horizontal(|ui| {
                 ui.label("filter: ");
                 let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
@@ -602,7 +606,6 @@ pub fn visualize_entities_with_component<T: Component>(display: Display) -> impl
     let menu_name = std::any::type_name::<T>();
 
     move |world| {
-
         let Ok(egui_context_check) = world.query_filtered::<&mut EguiContext, With<PrimaryWindow>>().get_single(world) else {
             warn!("multiple \"primary\" windows found. This is not supported. Aborting");
             return;
@@ -612,6 +615,7 @@ pub fn visualize_entities_with_component<T: Component>(display: Display) -> impl
         let window_style = world.get_resource::<R>()
         .unwrap_or(&R::default()).0
         .unwrap_or(Frame::window(&egui_context.get_mut().style()));
+
 
 
         let mut add_ui = {

@@ -39,6 +39,8 @@ fn spawn_world(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    
+
     commands.spawn(Camera3dBundle {
         transform: Transform::from_xyz(0.0, 5.0, 5.0).with_rotation(Quat::from_euler(
             EulerRot::XYZ,
