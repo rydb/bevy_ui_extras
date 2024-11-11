@@ -5,7 +5,7 @@ use bevy_state::prelude::*;
 use bevy_app::{Plugin, Update};
 use bevy_ecs::prelude::*;
 
-use crate::{manage_debug_menu_state, ComponentFilterMode, DebugMenuToggle, DebugWidgetView, FocusOnDebugFilter, ShowAppStatus, UiStyle, WindowStyleFrame};
+use crate::{manage_debug_menu_state, ComponentFilterMode, DebugMenuToggle, DebugModeToggle, DebugWidgetView, FocusOnDebugFilter, ShowAppStatus, UiStyle, WindowStyleFrame};
 use crate::{debug_menu, states::DebugMenuState, FilterResponse, UiExtrasKeybinds};
 
 
@@ -45,6 +45,7 @@ impl Plugin for UiExtrasDebug {
 
         app
         .init_resource::<DebugMenuToggle>()
+        .init_state::<DebugModeToggle>()
         .init_state::<DebugMenuState>()
         .insert_resource(self.keybinds_override.clone().unwrap_or_default())
         .register_type::<UiExtrasKeybinds>()

@@ -1,9 +1,10 @@
 
-use std::{any::TypeId, cell::Cell, collections::BTreeSet, fmt::Debug, ops::DerefMut, sync::Arc};
+use std::{any::TypeId, collections::BTreeSet, fmt::Debug, ops::DerefMut};
 
+use bevy_state::prelude::*;
 use bevy_app::Plugin;
 use bevy_derive::{Deref, DerefMut};
-use bevy_ecs::{component::ComponentId, prelude::*};
+use bevy_ecs::prelude::*;
 use bevy_input::prelude::KeyCode;
 use bevy_ecs::system::Resource;
 use bevy_reflect::Reflect;
@@ -14,7 +15,8 @@ use strum_macros::{Display, EnumIter};
 use crate::{stylesheets::DEBUG_FRAME_STYLE, TypeIdNameCache};
 
 /// Toggle to enable debug mode resources
-pub struct DebugModeToggle(pub bool);
+#[derive(Resource, Deref, DerefMut, Default)]
+pub struct DebugMenuToggle(pub bool);
 
 #[derive(Resource, Default, EnumIter, Display, PartialEq, Eq)]
 pub enum ComponentFilterMode {
@@ -80,58 +82,37 @@ pub struct UiExtrasKeybinds {
     pub cycle_views: KeyCode
 }
 
-#[derive(Resource, Default, Deref, DerefMut)]
-pub struct DebugMenuToggle(pub bool);
+#[derive(States, Default, Debug, Hash, PartialEq, Eq, PartialOrd, Clone)]
+pub enum DebugModeToggle {
+    On,
+    #[default]
+    Off,
+}
 
 // pub trait bob = Default + DerefMut;
 
 pub trait DebugTarget: DerefMut<Target = bool> + Resource {}
 
 
-pub struct DebugModeToggleRegistry{
-    pub registery: HashMap<String, ComponentId>
+pub struct DebugModeRegistry<T: DerefMut<Target = bool> + Resource>(T);
+
+impl<T: DerefMut<Target = bool> + Resource> Plugin for DebugModeRegistry<T> {
+    fn build(&self, app: &mut bevy_app::App) {
+        app
+        .add_systems(OnTransition {entered: DebugModeToggle::On, exited: DebugModeToggle::Off}, set_entry_to_toggle::<T>)
+        ;
+    }
 }
 
-
-// impl DebugModeToggleRegistry{
-//     // pub fn add<T: DerefMut<Target = bool> + Resource>(&mut self, item: T) -> self {
-        
-//     //     self.registery.insert(format!("{:#?}", item), Box::new(item))
-//     // }
-//     pub fn flip(&self, world: &mut World) {
-//         let (name, item) = self.registery.iter().last().unwrap();
-        
-//         let registration = type_registry
-//             .get(type_id)
-//             .ok_or(Error::NoTypeRegistration(type_id))?;
-//         let reflect_from_ptr = registration
-//             .data::<ReflectFromPtr>()
-//             .ok_or(Error::NoTypeData(type_id, "ReflectFromPtr"))?;
-
-//         let (ptr, set_changed) = crate::utils::mut_untyped_split(value);
-//         assert_eq!(reflect_from_ptr.type_id(), type_id);
-//         // SAFETY: ptr is of type type_id as required in safety contract, type_id was checked above
-//         let value = unsafe { reflect_from_ptr.as_reflect_mut(ptr) };
-
-//         Ok((value, set_changed))
-//     }
-// }
-
-
-// impl Plugin for DebugModeToggleRegistry {
-//     fn build(&self, app: &mut bevy_app::App) {
-        
-//     }
-// }
-
-// pub fn set_debug_mode<T: Component + DerefMut<Target = bool>>(
-//     mut debug_state_registry: ResMut<DebugModeToggleRegistry>,
-//     //target: Res<T>,
-// ) {
-//     for (name, target) in debug_state_registry.registery.iter_mut() {
-//         ***target ^= true;
-//     }
-// }
+fn set_entry_to_toggle<T: DerefMut<Target = bool> + Resource>(
+    mut debug_mode_target: ResMut<T>,
+    debug_mode_toggle: Res<State<DebugModeToggle>>
+) {
+    match **debug_mode_toggle {
+        DebugModeToggle::On => **debug_mode_target = true,
+        DebugModeToggle::Off => **debug_mode_target = false,
+    }
+}
 
 impl Default for UiExtrasKeybinds {
 

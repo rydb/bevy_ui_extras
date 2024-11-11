@@ -329,9 +329,27 @@ pub fn debug_menu(world: &mut World) {
                 debug_filter_response.selected_type.clear();
                 debug_filter_response.filter = "".to_owned();
             }
-            if let Some(mut debug_mode_toggle) = world.get_resource_mut::<DebugMenuToggle>() {
-                ui.checkbox(&mut debug_mode_toggle.0, "Toggle Debug Mode");
-            } 
+            {
+                let value = if let Some(debug_mode_toggle) = world.get_resource::<State<DebugModeToggle>>() {
+                    let mut value = match **debug_mode_toggle {
+                        DebugModeToggle::On => &mut true,
+                        DebugModeToggle::Off => &mut false,
+                    };
+                    ui.checkbox(&mut value, "Toggle Debug Mode");
+                    Some(*value)
+                } else {None};
+
+                if let Some(value) = value {
+                    if let Some(mut state) = world.get_resource_mut::<NextState<DebugModeToggle>>() {
+                        match value {
+                            true => state.set(DebugModeToggle::On),
+                            false => state.set(DebugModeToggle::Off),
+                        }
+                    }
+
+                }
+    
+            }
 
             ui.horizontal(|ui| {
                 ui.label("filter: ");

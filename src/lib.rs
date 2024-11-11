@@ -170,7 +170,7 @@ pub fn ui_for_components(
             queue: queue.as_deref_mut(),
         };
     
-        let (value, is_changed, set_changed) = match component_view.get_entity_component_reflect(
+        let (value, _, set_changed) = match component_view.get_entity_component_reflect(
             entity,
             component_type_id,
             type_registry,
@@ -188,10 +188,10 @@ pub fn ui_for_components(
             return;
         }
 
-        if is_changed {
-            #[cfg(feature = "highlight_changes")]
-            set_highlight_style(ui);
-        }
+        // if is_changed {
+        //     #[cfg(feature = "highlight_changes")]
+        //     set_highlight_style(ui);
+        // }
     
         header.show(ui, |ui| {
             ui.reset_style();
