@@ -1,6 +1,7 @@
 
 use std::{any::TypeId, collections::BTreeSet, fmt::Debug, ops::DerefMut};
 
+use bevy_inspector_egui::egui::Frame;
 use bevy_state::prelude::*;
 use bevy_derive::{Deref, DerefMut};
 use bevy_ecs::prelude::*;
@@ -8,7 +9,6 @@ use bevy_input::prelude::KeyCode;
 use bevy_ecs::system::Resource;
 use bevy_reflect::Reflect;
 use bevy_utils::HashMap;
-use egui::Frame;
 use strum_macros::{Display, EnumIter};
 
 use crate::{stylesheets::DEBUG_FRAME_STYLE, TypeIdNameCache};
@@ -68,9 +68,9 @@ pub struct FilterResponse {
     //pub fuzzy_match_enabled: bool,
 }
 
-// pub enum FilterKind {
-//     Crate(String)
-// }
+pub enum FilterKind {
+    Crate(String)
+}
 
 #[derive(Resource, Reflect, Clone)]
 #[reflect(Resource)]

@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 use std::ops::DerefMut;
 
 use bevy_diagnostic::{FrameTimeDiagnosticsPlugin, SystemInformationDiagnosticsPlugin};
-use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::bevy_egui::EguiPlugin;
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_state::prelude::*;
 use bevy_app::{Plugin, Update};

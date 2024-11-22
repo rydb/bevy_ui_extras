@@ -3,11 +3,11 @@ use std::any::*;
 use bevy_ecs::prelude::*;
 use bevy_ecs::component::ComponentId;
 use bevy_ecs::world::CommandQueue;
+use bevy_inspector_egui::egui::{self, Frame};
 use bevy_inspector_egui::reflect_inspector::{Context, InspectorUi};
 use bevy_inspector_egui::restricted_world_view::RestrictedWorldView;
 use bevy_log::warn;
 use bevy_reflect::*;
-use egui::Frame;
 use std::hash::Hash;
 
 
@@ -35,7 +35,7 @@ pub use components::*;
 pub use resources::*;
 pub use stylesheets::*;
 pub use systems::*;
-pub use tables::*;
+// pub use tables::*;
 // pub use tree::*;
 
 /// helper struct for keeping name and type_id together after type erasing a type.

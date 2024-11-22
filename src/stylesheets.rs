@@ -1,3 +1,4 @@
+use bevy_inspector_egui::egui;
 use egui::{epaint::Shadow, Color32, Frame, Margin, Rounding, Stroke};
 
 //128
