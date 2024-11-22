@@ -68,6 +68,10 @@ pub struct FilterResponse {
     //pub fuzzy_match_enabled: bool,
 }
 
+// pub enum FilterKind {
+//     Crate(String)
+// }
+
 #[derive(Resource, Reflect, Clone)]
 #[reflect(Resource)]
 pub struct UiExtrasKeybinds {
@@ -81,8 +85,9 @@ pub struct UiExtrasKeybinds {
     pub cycle_views: KeyCode
 }
 
+/// Resource that toggles all resources that are toggled
 #[derive(States, Default, Debug, Hash, PartialEq, Eq, PartialOrd, Clone)]
-pub enum DebugModeToggle {
+pub enum DebugModeFlagToggle {
     On,
     #[default]
     Off,

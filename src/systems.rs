@@ -222,12 +222,17 @@ pub fn debug_menu(world: &mut World) {
         .iter()
         .filter(|registration| registration.data::<ReflectComponent>().is_some())    
         .map(|registration| {
+            let type_path_table = registration.type_info().type_path_table();
             (
                 registration.type_id(),
-                registration.type_info().type_path_table().short_path(),
+                (
+                    type_path_table.short_path(),
+                    type_path_table.path().split_once("::").unwrap_or(("ERROR GETTING SOURCE", "")).0
+                )
+
             )
         })
-        .filter(|(_ ,name, ..)| {
+        .filter(|(_ ,(name, ..), ..)| {
             debug_filter_response.filter.len() <= 0 || name.to_lowercase().contains(&debug_filter_response.filter.to_lowercase())
         }) 
         .collect::<HashMap<_, _>>();
@@ -280,8 +285,7 @@ pub fn debug_menu(world: &mut World) {
 
     let selected_widget = selected_widget.clone();
     {
-        egui::Window::new("Debug Menu")
-        
+        egui::Window::new("Debug Menu")        
         .frame(window_style)
         .show(egui_context.get_mut(), |ui| {
             if let Some(mut selected_widget) = world.get_resource_mut::<DebugWidgetView>() {
@@ -344,20 +348,20 @@ pub fn debug_menu(world: &mut World) {
                 debug_filter_response.filter = "".to_owned();
             }
             {
-                let value = if let Some(debug_mode_toggle) = world.get_resource::<State<DebugModeToggle>>() {
+                let value = if let Some(debug_mode_toggle) = world.get_resource::<State<DebugModeFlagToggle>>() {
                     let mut value = match **debug_mode_toggle {
-                        DebugModeToggle::On => &mut true,
-                        DebugModeToggle::Off => &mut false,
+                        DebugModeFlagToggle::On => &mut true,
+                        DebugModeFlagToggle::Off => &mut false,
                     };
                     ui.checkbox(&mut value, "Toggle Debug Mode");
                     Some(*value)
                 } else {None};
 
                 if let Some(value) = value {
-                    if let Some(mut state) = world.get_resource_mut::<NextState<DebugModeToggle>>() {
+                    if let Some(mut state) = world.get_resource_mut::<NextState<DebugModeFlagToggle>>() {
                         match value {
-                            true => state.set(DebugModeToggle::On),
-                            false => state.set(DebugModeToggle::Off),
+                            true => state.set(DebugModeFlagToggle::On),
+                            false => state.set(DebugModeFlagToggle::Off),
                         }
                     }
 
@@ -502,13 +506,14 @@ pub fn debug_menu(world: &mut World) {
                             });
 
                             
-                            for (id, (name, _), ..) in components_filtered_and_attached.iter() {
+                            for (id, ((name, origin), _), ..) in components_filtered_and_attached.iter() {
                                 let color = match debug_filter_response.selected_type.contains_key(*id) {
                                     true => Color32::WHITE,
                                     false => Color32::GRAY
                                 };
+                                let button = ui.button(RichText::new(*name).color(color)); 
                                 
-                                if ui.button(RichText::new(**name).color(color)).clicked() {
+                                if button.clicked() {
 
                                     let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
                                         warn!("FilterResponse doesn't exist. Aborting");
@@ -531,6 +536,9 @@ pub fn debug_menu(world: &mut World) {
 
 
                                 };
+                                if button.hovered() {
+                                    ui.label(*origin);
+                                }
                             }
                         });
                     });

@@ -8,7 +8,7 @@ use bevy_state::prelude::*;
 use bevy_app::{Plugin, Update};
 use bevy_ecs::prelude::*;
 
-use crate::{manage_debug_menu_state, set_entry_to_off, set_entry_to_on, ComponentFilterMode, DebugMenuToggle, DebugModeToggle, DebugWidgetView, FocusOnDebugFilter, ShowAppStatus, UiStyle, WindowStyleFrame};
+use crate::{manage_debug_menu_state, set_entry_to_off, set_entry_to_on, ComponentFilterMode, DebugMenuToggle, DebugModeFlagToggle, DebugWidgetView, FocusOnDebugFilter, ShowAppStatus, UiStyle, WindowStyleFrame};
 use crate::{debug_menu, states::DebugMenuState, FilterResponse, UiExtrasKeybinds};
 
 
@@ -17,13 +17,15 @@ use crate::{debug_menu, states::DebugMenuState, FilterResponse, UiExtrasKeybinds
 pub struct UiExtrasDebug {
     pub ui_style: UiStyle,
     pub keybinds_override: Option<UiExtrasKeybinds>,
+    pub open_on_start: bool,
 }
 
 impl Default for UiExtrasDebug {
     fn default() -> Self {
         Self {
             ui_style: UiStyle::BlackGlass,
-            keybinds_override: None
+            keybinds_override: None,
+            open_on_start: true,
         }
     }
 }
@@ -48,7 +50,10 @@ impl Plugin for UiExtrasDebug {
 
         app
         .init_resource::<DebugMenuToggle>()
-        .init_state::<DebugModeToggle>()
+        .insert_state( match self.open_on_start {
+            true => DebugModeFlagToggle::On,
+            false => DebugModeFlagToggle::Off,
+        })
         .init_state::<DebugMenuState>()
         .insert_resource(self.keybinds_override.clone().unwrap_or_default())
         .register_type::<UiExtrasKeybinds>()
@@ -68,15 +73,19 @@ impl Plugin for UiExtrasDebug {
     }
 }
 
-/// Plugin for registering the given `T` for `DebugModeToggle` to enable/disable debug mod for a given debug mode toggle.
+/// Plugin for registering debug mode flags. If your resource is a bool newtype. implement deref into bool for it and, register it with
+/// ```rust
+/// app.add_plugins(DebugModeFlagRegistry::<T>::default())
+/// ```
+/// and then you can enable it through the debug menu.
 #[derive(Default)]
-pub struct DebugModeRegister<T: DerefMut<Target = bool> + Resource>(pub PhantomData<T>);
+pub struct DebugModeFlagRegister<T: DerefMut<Target = bool> + Resource>(pub PhantomData<T>);
 
-impl<T: DerefMut<Target = bool> + Resource> Plugin for DebugModeRegister<T> {
+impl<T: DerefMut<Target = bool> + Resource> Plugin for DebugModeFlagRegister<T> {
     fn build(&self, app: &mut bevy_app::App) {
         app
-        .add_systems(OnEnter(DebugModeToggle::On), set_entry_to_on::<T>)
-        .add_systems(OnEnter(DebugModeToggle::Off), set_entry_to_off::<T>)
+        .add_systems(OnEnter(DebugModeFlagToggle::On), set_entry_to_on::<T>)
+        .add_systems(OnEnter(DebugModeFlagToggle::Off), set_entry_to_off::<T>)
 
         ;
     }

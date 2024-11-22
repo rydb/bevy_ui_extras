@@ -16,7 +16,7 @@ fn main() {
     .init_resource::<QuickTable<MeshAttributes>>()
     .add_plugins(DefaultPlugins)
     .init_resource::<DummyDebugToggle>()
-    .add_plugins(DebugModeRegister::<DummyDebugToggle>::default())
+    .add_plugins(DebugModeFlagRegister::<DummyDebugToggle>::default())
     .add_plugins(UiExtrasDebug {
         ui_style: UiStyle::BlackGlass,
         ..default()
