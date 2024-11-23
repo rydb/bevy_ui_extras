@@ -8,7 +8,7 @@ use bevy_state::prelude::*;
 use bevy_app::{Plugin, Update};
 use bevy_ecs::prelude::*;
 
-use crate::{manage_debug_menu_state, set_entry_to_off, set_entry_to_on, ComponentFilterMode, DebugMenuToggle, DebugModeFlagToggle, DebugWidgetView, FocusOnDebugFilter, ShowAppStatus, UiStyle, WindowStyleFrame};
+use crate::{manage_debug_menu_state, set_entry_to_off, set_entry_to_on, ComponentFilterMode, DebugMenuToggle, DebugModeFlagToggle, DebugWidgetView, FilterKind, FocusOnDebugFilter, ShowAppStatus, UiStyle, WindowStyleFrame};
 use crate::{debug_menu, states::DebugMenuState, FilterResponse, UiExtrasKeybinds};
 
 
@@ -16,6 +16,7 @@ use crate::{debug_menu, states::DebugMenuState, FilterResponse, UiExtrasKeybinds
 /// plugin for general debug menu. See [`UiExtrasKeybinds`] for keybinds. 
 pub struct UiExtrasDebug {
     pub ui_style: UiStyle,
+    pub default_filters: Vec<FilterKind>,
     pub keybinds_override: Option<UiExtrasKeybinds>,
     pub open_on_start: bool,
 }
@@ -25,6 +26,7 @@ impl Default for UiExtrasDebug {
         Self {
             ui_style: UiStyle::BlackGlass,
             keybinds_override: None,
+            default_filters: vec![],
             open_on_start: true,
         }
     }

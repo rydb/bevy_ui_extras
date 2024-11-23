@@ -63,13 +63,16 @@ impl Default for FocusOnDebugFilter {
 
 #[derive(Resource, Reflect, Default, Clone)]
 pub struct FilterResponse {
-    pub filter: String,
+    pub filter_prompt: String,
+    pub filters: Vec<FilterKind>,
     pub selected_type: HashMap<TypeId, TypeIdNameCache>,
     //pub fuzzy_match_enabled: bool,
 }
-
+const CRATE_NAME: &'static str = env!("CARGO_CRATE_NAME");
+#[derive(Reflect, Clone)]
 pub enum FilterKind {
-    Crate(String)
+    Crate(String),
+    Name(String)
 }
 
 #[derive(Resource, Reflect, Clone)]

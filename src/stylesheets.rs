@@ -1,7 +1,6 @@
 use bevy_inspector_egui::egui;
 use egui::{epaint::Shadow, Color32, Frame, Margin, Rounding, Stroke};
 
-//128
 pub const DEBUG_FRAME_STYLE: Frame = Frame {
     inner_margin: Margin {
         left: 0.0,

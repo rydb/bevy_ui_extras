@@ -14,6 +14,7 @@ use bevy_inspector_egui::egui::Color32;
 use bevy_inspector_egui::egui::FontFamily;
 use bevy_inspector_egui::egui::FontId;
 use bevy_inspector_egui::egui::RichText;
+use bevy_inspector_egui::egui::Sense;
 use bevy_inspector_egui::egui::Stroke;
 use bevy_inspector_egui::egui::Ui;
 use bevy_state::prelude::*;
@@ -211,7 +212,9 @@ pub fn debug_menu(world: &mut World) {
     };
     let debug_filter_response = debug_filter_response.clone();
 
-    let resources_filtered = type_registry
+    let resources_filtered = {
+        
+        let resources = type_registry
         .iter()
         .filter(|registration| registration.data::<ReflectResource>().is_some())
         .map(|registration| {
@@ -220,12 +223,21 @@ pub fn debug_menu(world: &mut World) {
                 registration.type_id(),
                 registration.type_info().type_path_table().short_path(),
             )
-        })
-        .filter(|(_, name, ..)| {
-            debug_filter_response.filter.len() <= 0 || name.to_lowercase().contains(&debug_filter_response.filter.to_lowercase())
+        });
+        // for filter in debug_filter_response.filters.into_iter() {
+        //     match filter {
+        //         FilterKind::Crate(name) => {
+        //             let resources = resources.filter(predicate)
+        //         },
+        //         FilterKind::Name(name) => todo!(),
+        //     }
+        // }
+        let resources = resources.filter(|(_, name, ..)| {
+            debug_filter_response.filter_prompt.len() <= 0 || name.to_lowercase().contains(&debug_filter_response.filter_prompt.to_lowercase())
         }) 
         .collect::<HashMap<_, _>>();
-    
+        resources
+    };
     let components_filtered = type_registry
         .iter()
         .filter(|registration| registration.data::<ReflectComponent>().is_some())    
@@ -241,7 +253,7 @@ pub fn debug_menu(world: &mut World) {
             )
         })
         .filter(|(_ ,(name, ..), ..)| {
-            debug_filter_response.filter.len() <= 0 || name.to_lowercase().contains(&debug_filter_response.filter.to_lowercase())
+            debug_filter_response.filter_prompt.len() <= 0 || name.to_lowercase().contains(&debug_filter_response.filter_prompt.to_lowercase())
         }) 
         .collect::<HashMap<_, _>>();
     
@@ -353,7 +365,7 @@ pub fn debug_menu(world: &mut World) {
                 };
 
                 debug_filter_response.selected_type.clear();
-                debug_filter_response.filter = "".to_owned();
+                debug_filter_response.filter_prompt = "".to_owned();
             }
             {
                 let value = if let Some(debug_mode_toggle) = world.get_resource::<State<DebugModeFlagToggle>>() {
@@ -379,18 +391,54 @@ pub fn debug_menu(world: &mut World) {
 
             ui.horizontal(|ui| {
                 ui.label("filter: ");
+                
+                let pressed_enter = {
+                    let Some(keys) = world.get_resource::<ButtonInput<KeyCode>>() else {return};
+
+                    if keys.just_pressed(KeyCode::Enter) == true {
+                        true
+                    } else {
+                        false
+                    }
+                
+                };
+                
                 let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
                     warn!("FilterResponse doesn't exist. Aborting");
                     return;
                 };
-                let filter = ui.text_edit_singleline(&mut debug_filter_response.filter);
+                let filter = ui.text_edit_singleline(&mut debug_filter_response.filter_prompt);
+                {
+                    if pressed_enter {
+                        println!("adding new filter");
+                        let mut new_filters =  vec![FilterKind::Name(debug_filter_response.filter_prompt.clone())];
+                        new_filters.extend(debug_filter_response.filters.clone());
+                        debug_filter_response.filters = new_filters;
+                    }
+                }
                 if let Some(mut new_focus_request) = world.get_resource_mut::<FocusOnDebugFilter>() {
                     if new_focus_request.0 == true {
                         filter.request_focus();
                         new_focus_request.0 = false;
                     }
                 }
+
+                
             }); 
+            ui.horizontal(|ui|{
+                ui.label("filters: ");
+                let Some(filters) = world.get_resource::<FilterResponse>() else {return;};
+                for filter in filters.filters.clone().into_iter() {
+                    match filter {
+                        FilterKind::Crate(name) => {
+                            ui.label(format!("In crate: {:#}", name));
+                        },
+                        FilterKind::Name(name) => {
+                            ui.label(format!("has component: {:#}", name));
+                        },
+                    }
+                } 
+            });
             // {
             //     let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
             //         warn!("FilterResponse doesn't exist. Aborting");

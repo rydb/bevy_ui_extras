@@ -2,10 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 
-use bevy_inspector_egui::{bevy_egui::EguiContext, egui};
 use bevy_ui_extras::*;
-use bevy_window::PrimaryWindow;
-use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter};
 
 #[derive(Default, Deref, DerefMut, Resource)]
