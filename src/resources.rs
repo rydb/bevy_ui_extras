@@ -1,13 +1,12 @@
-
 use std::{any::TypeId, collections::BTreeSet, fmt::Debug, ops::DerefMut};
 
-use bevy_inspector_egui::egui::Frame;
-use bevy_state::prelude::*;
 use bevy_derive::{Deref, DerefMut};
 use bevy_ecs::prelude::*;
-use bevy_input::prelude::KeyCode;
 use bevy_ecs::system::Resource;
+use bevy_input::prelude::KeyCode;
+use bevy_inspector_egui::egui::Frame;
 use bevy_reflect::Reflect;
+use bevy_state::prelude::*;
 use bevy_utils::HashMap;
 use strum_macros::{Display, EnumIter};
 
@@ -68,24 +67,24 @@ pub struct FilterResponse {
     pub selected_type: HashMap<TypeId, TypeIdNameCache>,
     //pub fuzzy_match_enabled: bool,
 }
-const CRATE_NAME: &'static str = env!("CARGO_CRATE_NAME");
+// const CRATE_NAME: &'static str = env!("CARGO_CRATE_NAME");
 #[derive(Reflect, Clone)]
 pub enum FilterKind {
     Crate(String),
-    Name(String)
+    Name(String),
 }
 
 #[derive(Resource, Reflect, Clone)]
 #[reflect(Resource)]
 pub struct UiExtrasKeybinds {
-    /// keyibnd to toggle debug menu on and off. 
+    /// keyibnd to toggle debug menu on and off.
     pub toggle_debug_menu: KeyCode,
     /// keybind to quickly open the debug menu and filter for specific components/resources
     pub filter_quick_focus: BTreeSet<KeyCode>,
     /// clears all selected values in debug menu
     pub clear: BTreeSet<KeyCode>,
     /// cycles between different debug view modes
-    pub cycle_views: KeyCode
+    pub cycle_views: KeyCode,
 }
 
 /// Resource that toggles all resources that are toggled
@@ -100,13 +99,7 @@ pub enum DebugModeFlagToggle {
 
 pub trait DebugTarget: DerefMut<Target = bool> + Resource {}
 
-
-
-
-
-
 impl Default for UiExtrasKeybinds {
-
     fn default() -> Self {
         let mut x = DebugMenuToggle(false);
         *x ^= true;
@@ -115,7 +108,7 @@ impl Default for UiExtrasKeybinds {
             toggle_debug_menu: KeyCode::Backquote,
             filter_quick_focus: [KeyCode::ControlLeft, KeyCode::KeyF].into(),
             clear: [KeyCode::ControlLeft, KeyCode::KeyC].into(),
-            cycle_views: KeyCode::AltLeft
+            cycle_views: KeyCode::AltLeft,
         }
     }
 }

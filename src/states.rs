@@ -4,5 +4,5 @@ use bevy_state::prelude::*;
 pub enum DebugMenuState {
     Open,
     #[default]
-    Closed
+    Closed,
 }
