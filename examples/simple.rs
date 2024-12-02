@@ -23,7 +23,7 @@ fn main() {
     .add_systems(
         Update,
         (
-            visualize_entities_with_component::<Handle<StandardMaterial>>(bevy_ui_extras::Display::Side(Side::Left)),
+            visualize_entities_with_component::<MeshMaterial3d<StandardMaterial>>(bevy_ui_extras::Display::Side(Side::Left)),
             visualize_components_for::<Transform>(bevy_ui_extras::Display::Side(Side::Right)),
             //visualize_resource::<ClearColor>(bevy_ui_extras::Display::Window),
             //display_mesh_info,
@@ -43,31 +43,28 @@ fn spawn_world(
 ) {
     
 
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 5.0, 5.0).with_rotation(Quat::from_euler(
+    commands.spawn((
+        Camera3d::default(), 
+        Transform::from_xyz(0.0, 5.0, 5.0).with_rotation(Quat::from_euler(
             EulerRot::XYZ,
             -PI / 4.0,
             0.0,
             0.0,
-        )),
-        ..default()
-    });
+        ))
+    ));
     commands.spawn(
         (
-        PbrBundle {
-        mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
-        transform: Transform::from_xyz(0.0, 0.0, 0.0).with_rotation(Quat::from_euler(
-            EulerRot::XYZ,
-            0.0,
-            -PI / 4.0,
-            0.0,
-        )),
-        material: materials.add(Color::Srgba(Srgba::new(0.0, 1.0, 1.0, 1.0))),
-        ..default()
-    },
-    MeshInfoTarget
+            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+            MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
+            MeshInfoTarget,
+            Transform::from_xyz(0.0, 0.0, 0.0).with_rotation(Quat::from_euler(
+                EulerRot::XYZ,
+                0.0,
+                -PI / 4.0,
+                0.0,
+            ))
         )
-);
+    );
 }
 
 #[derive(Default, Clone, Copy, Reflect, Debug, PartialEq, Eq, EnumIter, Display)]

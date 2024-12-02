@@ -14,7 +14,7 @@ use bevy_inspector_egui::egui::Color32;
 use bevy_inspector_egui::egui::FontFamily;
 use bevy_inspector_egui::egui::FontId;
 use bevy_inspector_egui::egui::RichText;
-use bevy_inspector_egui::egui::Sense;
+// use bevy_inspector_egui::egui::Sense;
 use bevy_inspector_egui::egui::Stroke;
 use bevy_inspector_egui::egui::Ui;
 use bevy_state::prelude::*;

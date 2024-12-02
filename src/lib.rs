@@ -122,7 +122,7 @@ pub fn ui_for_resource(
         };
         let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 
-        let (resource, set_changed) = match resource_view
+        let mut resource = match resource_view
             .get_resource_reflect_mut_by_id(resource_type_id, type_registry)
         {
             Ok(resource) => resource,
@@ -132,9 +132,12 @@ pub fn ui_for_resource(
             },//return errors::show_error(err, ui, name_of_type),
         };
 
-        let changed = env.ui_for_reflect_with_options(resource, ui, id.with(resource_type_id), &());
+        let changed = env.ui_for_reflect_with_options(
+            resource.bypass_change_detection().as_partial_reflect_mut(), 
+            ui, 
+            id.with(resource_type_id), &());
         if changed {
-            set_changed();
+            resource.set_changed();
         }
     }
 
@@ -170,17 +173,24 @@ pub fn ui_for_components(
             queue: queue.as_deref_mut(),
         };
     
-        let (value, _, set_changed) = match component_view.get_entity_component_reflect(
-            entity,
-            component_type_id,
-            type_registry,
-        ) {
-            Ok(value) => value,
-            Err(_) => {
-                //header.show(ui, |ui| errors::show_error(e, ui, &name));
-                //ui.label(format!("{:#?}", e));
-                continue;
-            }
+        // let (value, _, set_changed) = match component_view.get_entity_component_reflect(
+        //     entity,
+        //     component_type_id,
+        //     type_registry,
+        // ) {
+        //     Ok(value) => value,
+        //     Err(_) => {
+        //         //header.show(ui, |ui| errors::show_error(e, ui, &name));
+        //         //ui.label(format!("{:#?}", e));
+        //         continue;
+        //     }
+        // };
+        let Ok(mut value) = component_view.get_entity_component_reflect(entity, component_type_id, type_registry)
+        .inspect_err(|err| {
+            ui.label(format!("{:#?}", err));
+        })
+         else {
+            return;
         };
     
         if size == 0 {
@@ -197,10 +207,15 @@ pub fn ui_for_components(
             ui.reset_style();
     
             let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
-                .ui_for_reflect_with_options(value, ui, id.with(component_id), &());
+                .ui_for_reflect_with_options(
+                    value.bypass_change_detection().as_partial_reflect_mut(), 
+                    ui, 
+                    id.with(component_id), 
+                    &()
+                );
     
             if inspector_changed {
-                set_changed();
+                value.set_changed();
             }
         });
         ui.reset_style();

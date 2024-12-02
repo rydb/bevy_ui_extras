@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ui_extras"
-version = "0.15.0"
+version = "0.16.0"
 edition = "2021"
 repository = "https://github.com/rydb/bevy_ui_extras"
 readme = "README.md"
@@ -8,28 +8,30 @@ license = "MIT OR Apache-2.0"
 description = "A crate containing a collection of utilities to make working with ui in bevy easier."
 
 [dependencies]
-bevy_ecs = { version = "0.14"}
-bevy_utils = { version = "0.14" }
-bevy_window = "0.14"
-bevy_derive = "0.14"
-bevy_reflect = "0.14"
-bevy_log = "0.14"
-bevy_input = "0.14"
-bevy_app = "0.14"
-bevy_state = "0.14"
+bevy_ecs = { version = "0.15"}
+bevy_utils = { version = "0.15" }
+bevy_window = "0.15"
+bevy_derive = "0.15"
+bevy_reflect = "0.15"
+bevy_log = "0.15"
+bevy_input = "0.15"
+bevy_app = "0.15"
+bevy_state = "0.15"
+# bevy_asset = "0.15"
+# bevy_pbr = "0.15"
 # trait-set = "0.3"
-bevy_diagnostic = {version = "0.14", features = ["sysinfo_plugin"]}
-bevy_hierarchy = "0.14"
+bevy_diagnostic = {version = "0.15", features = ["sysinfo_plugin"]}
+bevy_hierarchy = "0.15"
 pretty-type-name = "1.0"
 colorgrad = "0.7"
-bevy-inspector-egui = "0.27"
+bevy-inspector-egui = "0.28"
 strum = "0.26"
 strum_macros = "0.26"
 
 [dev-dependencies]
-bevy = {version = "0.14"}
+bevy = {version = "0.15"}
 
 
 [dependencies.winit]
-version = "=0.30.4"
+version = "=0.30.5"
 features = ["default"]

@@ -3,8 +3,11 @@ use std::ops::DerefMut;
 
 use bevy_diagnostic::{FrameTimeDiagnosticsPlugin, SystemInformationDiagnosticsPlugin};
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
+// use bevy_inspector_egui::quick::AssetInspectorPlugin;
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
+// use bevy_pbr::StandardMaterial;
 use bevy_state::prelude::*;
+// use bevy_pbr::StandardMaterial;
 use bevy_app::{Plugin, Update};
 use bevy_ecs::prelude::*;
 
@@ -46,6 +49,10 @@ impl Plugin for UiExtrasDebug {
         if !app.is_plugin_added::<EguiPlugin>() {
             app.add_plugins(EguiPlugin);
         }
+        // if !app.is_plugin_added::<AssetInspectorPlugin::<StandardMaterial>>() {
+        //     app.add_plugins(AssetInspectorPlugin::<StandardMaterial>::default());
+        // }
+
         // if !app.is_plugin_added::<InspectSchedulePlugin>() {
         //     app.add_plugins(InspectSchedulePlugin);
         // }
@@ -67,6 +74,7 @@ impl Plugin for UiExtrasDebug {
         .init_resource::<ComponentFilterMode>()
         //.init_resource::<SelectedEntities>()
         .register_type::<FilterResponse>()
+        //.register_asset_reflect::<StandardMaterial>()
         .add_systems(Update, debug_menu.run_if(in_state(DebugMenuState::Open)))
         .add_systems(Update, manage_debug_menu_state)
         .add_plugins(FrameTimeDiagnosticsPlugin)
