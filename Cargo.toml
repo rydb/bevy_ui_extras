@@ -17,7 +17,7 @@ bevy_log = "0.15"
 bevy_input = "0.15"
 bevy_app = "0.15"
 bevy_state = "0.15"
-# bevy_asset = "0.15"
+bevy_asset = "0.15"
 # bevy_pbr = "0.15"
 # trait-set = "0.3"
 bevy_diagnostic = {version = "0.15", features = ["sysinfo_plugin"]}

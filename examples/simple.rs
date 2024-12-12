@@ -14,6 +14,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .init_resource::<DummyDebugToggle>()
         .add_plugins(DebugModeFlagRegister::<DummyDebugToggle>::default())
+        .register_type::<MeshInfoTarget>()
         .add_plugins(UiExtrasDebug {
             ui_style: UiStyle::BlackGlass,
             ..default()
@@ -33,8 +34,9 @@ fn main() {
         .run();
 }
 
-#[derive(Component)]
-pub struct MeshInfoTarget;
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct MeshInfoTarget(pub u32);
 
 fn spawn_world(
     mut commands: Commands,
@@ -49,17 +51,19 @@ fn spawn_world(
             0.0,
             0.0,
         )),
+        Name::new("Plane"),
     ));
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
         MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
-        MeshInfoTarget,
+        MeshInfoTarget(10),
         Transform::from_xyz(0.0, 0.0, 0.0).with_rotation(Quat::from_euler(
             EulerRot::XYZ,
             0.0,
             -PI / 4.0,
             0.0,
         )),
+        Name::new("Cube"),
     ));
 }
 
