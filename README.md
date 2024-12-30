@@ -14,7 +14,7 @@
   - generlized `DebugModeFlag` to mass enable/disable debug mode flags.
 
 
-[demo.mp4](demo.mp4)
+https://github.com/user-attachments/assets/9bfe0926-d484-4350-9f54-09a3fd76afb7
 
 
 <h3>
