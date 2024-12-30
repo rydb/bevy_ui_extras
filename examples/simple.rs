@@ -19,7 +19,7 @@ fn main() {
         .register_type::<MeshInfoTarget>()
         .add_plugins(UiExtrasDebug {
             ui_style: UiStyle::BLACK_GLASS,
-            alignment: UiAlignment(Align2::CENTER_TOP),
+            alignment: UiAlignment(Align2::LEFT_TOP),
             menu_mode: DebugMenuState::Explain,
             ..default()
         })
