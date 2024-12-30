@@ -60,16 +60,6 @@ impl TypeIdNameCache {
     }
 }
 
-/// Style for debug menu widget
-pub enum UiStyle {
-    /// Sets frame to egui default.
-    Default,
-    /// see-through/glassy.
-    BlackGlass,
-    /// Custom user-set ui style
-    Custom(Frame),
-}
-
 /// fetches the info for the componenet of type T for the given entity, if it exists.
 pub fn component_info_for(
     world: &mut RestrictedWorldView<'_>,
@@ -188,15 +178,42 @@ pub fn ui_for_components(
         let Ok(mut value) = component_view
             .get_entity_component_reflect(entity, component_type_id, type_registry)
             .inspect_err(|err| {
-                ui.label(format!("{:#?}", err));
+                // skip over errors that are not relevant(Not having given component)
+                let mabye_err = match err {
+                    bevy_inspector_egui::restricted_world_view::Error::NoAccessToResource(_) => {
+                        Some(err)
+                    }
+                    bevy_inspector_egui::restricted_world_view::Error::NoAccessToComponent(_) => {
+                        Some(err)
+                    }
+                    bevy_inspector_egui::restricted_world_view::Error::ResourceDoesNotExist(_) => {
+                        None
+                    }
+                    bevy_inspector_egui::restricted_world_view::Error::ComponentDoesNotExist(_) => {
+                        None
+                    }
+                    bevy_inspector_egui::restricted_world_view::Error::NoComponentId(_) => {
+                        Some(err)
+                    }
+                    bevy_inspector_egui::restricted_world_view::Error::NoTypeRegistration(_) => {
+                        Some(err)
+                    }
+                    bevy_inspector_egui::restricted_world_view::Error::NoTypeData(_, _) => {
+                        Some(err)
+                    }
+                };
+
+                if let Some(msg) = mabye_err {
+                    ui.label(format!("{:#?}", msg));
+                }
             })
         else {
-            return;
+            continue;
         };
 
         if size == 0 {
             header.show(ui, |_| {});
-            return;
+            continue;
         }
 
         // if is_changed {

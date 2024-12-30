@@ -54,6 +54,29 @@ pub(crate) fn set_entry_to_off<T: DerefMut<Target = bool> + Resource>(
     **debug_mode_target = false;
 }
 
+pub fn display_debug_menu_explanation(
+    mut windows: Query<&mut EguiContext, With<PrimaryWindow>>,
+    controls: Res<KeyBinds>,
+    frame: Res<UiStyle>,
+) {
+    let Ok(mut context) = windows.get_single_mut() else {
+        return;
+    };
+
+    let window = egui::Window::new("Controls");
+
+    let frame = match frame.0 {
+        Some(frame) => frame,
+        None => Frame::window(&context.get_mut().style()),
+    };
+    window
+        .frame(frame)
+        .anchor(egui::Align2::LEFT_TOP, [0.0, 0.0])
+        .show(context.get_mut(), |ui| {
+            ui.label(format!("{:#?}", controls));
+        });
+}
+
 /// displays misc info for app status
 /// !!! CPU/RAM usage stats do not work when dynamic linking is enabled !!!
 pub fn display_app_status(
@@ -168,7 +191,7 @@ pub fn display_app_status(
 }
 
 pub(crate) fn manage_debug_menu_state(
-    menu_controls: Res<UiExtrasKeybinds>,
+    menu_controls: Res<KeyBinds>,
     keys: Res<ButtonInput<KeyCode>>,
     mut debug_menu_state_next: ResMut<NextState<DebugMenuState>>,
     debug_menu_state: Res<State<DebugMenuState>>,
@@ -180,6 +203,7 @@ pub(crate) fn manage_debug_menu_state(
         match debug_menu_state.get() {
             DebugMenuState::Open => debug_menu_state_next.set(DebugMenuState::Closed),
             DebugMenuState::Closed => debug_menu_state_next.set(DebugMenuState::Open),
+            DebugMenuState::Explain => debug_menu_state_next.set(DebugMenuState::Open),
         }
     }
     if keys.all_pressed(menu_controls.filter_quick_focus.clone()) {
@@ -209,7 +233,7 @@ pub(crate) fn manage_debug_menu_state(
 }
 
 pub fn debug_menu(world: &mut World) {
-    type R = WindowStyleFrame;
+    type R = UiStyle;
 
     let Ok(egui_context_check) = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
@@ -425,17 +449,17 @@ pub fn debug_menu(world: &mut World) {
                 ui.horizontal(|ui| {
                     ui.label("filter: ");
 
-                    let pressed_enter = {
-                        let Some(keys) = world.get_resource::<ButtonInput<KeyCode>>() else {
-                            return;
-                        };
+                    // let pressed_enter = {
+                    //     let Some(keys) = world.get_resource::<ButtonInput<KeyCode>>() else {
+                    //         return;
+                    //     };
 
-                        if keys.just_pressed(KeyCode::Enter) == true {
-                            true
-                        } else {
-                            false
-                        }
-                    };
+                    //     if keys.just_pressed(KeyCode::Enter) == true {
+                    //         true
+                    //     } else {
+                    //         false
+                    //     }
+                    // };
 
                     let Some(mut debug_filter_response) =
                         world.get_resource_mut::<FilterResponse>()
@@ -445,14 +469,15 @@ pub fn debug_menu(world: &mut World) {
                     };
                     let filter = ui.text_edit_singleline(&mut debug_filter_response.filter_prompt);
                     {
-                        if pressed_enter {
-                            println!("adding new filter");
-                            let mut new_filters = vec![FilterKind::Name(
-                                debug_filter_response.filter_prompt.clone(),
-                            )];
-                            new_filters.extend(debug_filter_response.filters.clone());
-                            debug_filter_response.filters = new_filters;
-                        }
+                        //TODO: implement this when filters expanded more.
+                        // if pressed_enter {
+                        //     //println!("adding new filter");
+                        //     let mut new_filters = vec![FilterKind::Name(
+                        //         debug_filter_response.filter_prompt.clone(),
+                        //     )];
+                        //     new_filters.extend(debug_filter_response.filters.clone());
+                        //     debug_filter_response.filters = new_filters;
+                        // }
                     }
                     if let Some(mut new_focus_request) =
                         world.get_resource_mut::<FocusOnDebugFilter>()
@@ -762,7 +787,7 @@ pub fn debug_menu(world: &mut World) {
 
 /// visualize all entities in a given format.
 pub fn visualize_entities_with_component<T: Component>(display: Display) -> impl Fn(&mut World) {
-    type R = WindowStyleFrame;
+    type R = UiStyle;
 
     let menu_name = std::any::type_name::<T>();
 
@@ -816,7 +841,7 @@ pub fn visualize_entities_with_component<T: Component>(display: Display) -> impl
 
 /// visualize a resource with a given format.
 pub fn visualize_resource<T: Resource + Reflect>(display: Display) -> impl Fn(&mut World) {
-    type R = WindowStyleFrame;
+    type R = UiStyle;
     let menu_name = std::any::type_name::<T>();
 
     move |world| {
@@ -882,7 +907,7 @@ pub fn visualize_resource<T: Resource + Reflect>(display: Display) -> impl Fn(&m
 
 /// visualize a given component with a given format.
 pub fn visualize_components_for<T: Component + Reflect>(display: Display) -> impl Fn(&mut World) {
-    type R = WindowStyleFrame;
+    type R = UiStyle;
     let menu_name = std::any::type_name::<T>();
 
     move |world| {
@@ -965,7 +990,7 @@ pub fn visualize_seperate_window_for_entities_with<T: Component>(
 ) {
     let window_name = std::any::type_name::<T>();
 
-    type R = WindowStyleFrame;
+    type R = UiStyle;
 
     if let Ok(egui_context_check) = world
         .query_filtered::<&mut EguiContext, With<Visualize<T>>>()

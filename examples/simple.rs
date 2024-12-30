@@ -3,6 +3,7 @@ use std::f32::consts::PI;
 use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 
 use bevy_ui_extras::*;
+use states::DebugMenuState;
 use strum_macros::{Display, EnumIter};
 
 #[derive(Default, Deref, DerefMut, Resource)]
@@ -16,16 +17,17 @@ fn main() {
         .add_plugins(DebugModeFlagRegister::<DummyDebugToggle>::default())
         .register_type::<MeshInfoTarget>()
         .add_plugins(UiExtrasDebug {
-            ui_style: UiStyle::BlackGlass,
+            ui_style: UiStyle::BLACK_GLASS,
+            menu_mode: DebugMenuState::Explain,
             ..default()
         })
         .add_systems(Startup, spawn_world)
         .add_systems(
             Update,
             (
-                visualize_entities_with_component::<MeshMaterial3d<StandardMaterial>>(
-                    bevy_ui_extras::Display::Side(Side::Left),
-                ),
+                // visualize_entities_with_component::<MeshMaterial3d<StandardMaterial>>(
+                //     bevy_ui_extras::Display::Side(Side::Left),
+                // ),
                 visualize_components_for::<Transform>(bevy_ui_extras::Display::Side(Side::Right)),
                 //visualize_resource::<ClearColor>(bevy_ui_extras::Display::Window),
                 //display_mesh_info,
@@ -51,7 +53,7 @@ fn spawn_world(
             0.0,
             0.0,
         )),
-        Name::new("Plane"),
+        Name::new("Camera"),
     ));
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),

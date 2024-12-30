@@ -33,17 +33,15 @@ pub enum DebugWidgetView {
     ComponentsView,
 }
 
-// pubs struct ComponentFilterMode()
+/// debug menu styles
+#[derive(Resource, Default, Clone)]
+pub struct UiStyle(pub Option<Frame>);
 
-/// the style that egui windows for this library use. See [`stylesheets.rs`] for what those look like.
-#[derive(Resource)]
-pub struct WindowStyleFrame(pub Option<Frame>);
-
-impl Default for WindowStyleFrame {
-    fn default() -> Self {
-        Self(Some(DEBUG_FRAME_STYLE))
-    }
+impl UiStyle {
+    //TODO: Add more styles here.
+    pub const BLACK_GLASS: Self = Self(Some(DEBUG_FRAME_STYLE));
 }
+
 #[derive(Resource)]
 pub struct ShowAppStatus(pub bool);
 impl Default for ShowAppStatus {
@@ -67,16 +65,18 @@ pub struct FilterResponse {
     pub selected_type: HashMap<TypeId, TypeIdNameCache>,
     //pub fuzzy_match_enabled: bool,
 }
-// const CRATE_NAME: &'static str = env!("CARGO_CRATE_NAME");
+
+/// (W.I.P) What components are filtered by
 #[derive(Reflect, Clone)]
 pub enum FilterKind {
     Crate(String),
     Name(String),
 }
 
-#[derive(Resource, Reflect, Clone)]
+/// Keybinds for this crate.
+#[derive(Resource, Reflect, Clone, Debug)]
 #[reflect(Resource)]
-pub struct UiExtrasKeybinds {
+pub struct KeyBinds {
     /// keyibnd to toggle debug menu on and off.
     pub toggle_debug_menu: KeyCode,
     /// keybind to quickly open the debug menu and filter for specific components/resources
@@ -99,7 +99,7 @@ pub enum DebugModeFlagToggle {
 
 pub trait DebugTarget: DerefMut<Target = bool> + Resource {}
 
-impl Default for UiExtrasKeybinds {
+impl Default for KeyBinds {
     fn default() -> Self {
         let mut x = DebugMenuToggle(false);
         *x ^= true;
