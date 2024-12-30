@@ -4,7 +4,7 @@ use bevy_derive::{Deref, DerefMut};
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::Resource;
 use bevy_input::prelude::KeyCode;
-use bevy_inspector_egui::egui::Frame;
+use bevy_inspector_egui::egui::{Align2, Frame};
 use bevy_reflect::Reflect;
 use bevy_state::prelude::*;
 use bevy_utils::HashMap;
@@ -36,6 +36,15 @@ pub enum DebugWidgetView {
 /// debug menu styles
 #[derive(Resource, Default, Clone)]
 pub struct UiStyle(pub Option<Frame>);
+
+#[derive(Resource, Clone)]
+pub struct UiAlignment(pub Align2);
+
+impl Default for UiAlignment {
+    fn default() -> Self {
+        Self(Align2::LEFT_TOP)
+    }
+}
 
 impl UiStyle {
     //TODO: Add more styles here.

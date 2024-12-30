@@ -57,6 +57,7 @@ pub(crate) fn set_entry_to_off<T: DerefMut<Target = bool> + Resource>(
 pub fn display_debug_menu_explanation(
     mut windows: Query<&mut EguiContext, With<PrimaryWindow>>,
     controls: Res<KeyBinds>,
+    alignment: Res<UiAlignment>,
     frame: Res<UiStyle>,
 ) {
     let Ok(mut context) = windows.get_single_mut() else {
@@ -71,7 +72,7 @@ pub fn display_debug_menu_explanation(
     };
     window
         .frame(frame)
-        .anchor(egui::Align2::LEFT_TOP, [0.0, 0.0])
+        .anchor(alignment.0, [0.0, 0.0])
         .show(context.get_mut(), |ui| {
             ui.label(format!("{:#?}", controls));
         });
@@ -254,6 +255,12 @@ pub fn debug_menu(world: &mut World) {
         .unwrap_or(&R::default())
         .0
         .unwrap_or(Frame::window(&egui_context.get_mut().style()));
+    let alignment = {
+        let Some(alignment) = world.get_resource::<UiAlignment>() else {
+            return;
+        };
+        alignment.0
+    };
 
     //let components = world.components().iter().map(|n| n.name() );//.iter().filter_map(|n| n.type_id());
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
@@ -360,6 +367,7 @@ pub fn debug_menu(world: &mut World) {
     {
         egui::Window::new("Debug Menu")
             .frame(window_style)
+            .anchor(alignment, [0.0, 0.0])
             .show(egui_context.get_mut(), |ui| {
                 if let Some(mut selected_widget) = world.get_resource_mut::<DebugWidgetView>() {
                     ui.horizontal(|ui| {
