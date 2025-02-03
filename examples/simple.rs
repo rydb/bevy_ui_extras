@@ -2,7 +2,6 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 
-use bevy_inspector_egui::egui::Align2;
 use bevy_ui_extras::*;
 use states::DebugMenuState;
 use strum_macros::{Display, EnumIter};
@@ -12,28 +11,23 @@ pub struct DummyDebugToggle(pub bool);
 
 fn main() {
     App::new()
-        //.init_resource::<QuickTable<MeshAttributes>>()
+        //.init_resource::<QuickTable<MeshAttributes>>()d
         .add_plugins(DefaultPlugins)
         .init_resource::<DummyDebugToggle>()
         .add_plugins(DebugModeFlagRegister::<DummyDebugToggle>::default())
         .register_type::<MeshInfoTarget>()
         .add_plugins(UiExtrasDebug {
             ui_style: UiStyle::BLACK_GLASS,
-            alignment: UiAlignment(Align2::LEFT_TOP),
+            alignment: None,
             menu_mode: DebugMenuState::Explain,
             ..default()
         })
         .add_systems(Startup, spawn_world)
         .add_systems(
             Update,
-            (
-                // visualize_entities_with_component::<MeshMaterial3d<StandardMaterial>>(
-                //     bevy_ui_extras::Display::Side(Side::Left),
-                // ),
-                visualize_components_for::<Transform>(bevy_ui_extras::Display::Side(Side::Right)),
-                //visualize_resource::<ClearColor>(bevy_ui_extras::Display::Window),
-                //display_mesh_info,
-            ),
+            (visualize_components_for::<Transform>(
+                bevy_ui_extras::Display::Side(Side::Right),
+            ),),
         )
         .run();
 }
@@ -79,96 +73,6 @@ pub enum MeshAttributes {
     NORMAL,
     UV,
 }
-
-/// creates a table displaying info about mesh targets, and a menu to edit these meshesh through.
-// pub fn display_mesh_info(
-//     mut primary_window: Query<&mut EguiContext, With<PrimaryWindow>>,
-//     //mut mesh_attr_table: ResMut<TablePick<MeshAttributes>>,
-//     mut mesh_attr_table: ResMut<QuickTable<MeshAttributes>>,
-//     target_meshes: Query<&Handle<Mesh>, With<MeshInfoTarget>>,
-//     mut meshes: ResMut<Assets<Mesh>>
-// ) {
-//     for mut context in primary_window.iter_mut() {
-//         let ui_name = "Mesh Attributes";
-//         egui::Window::new(ui_name)
-//         .resizable(false)
-//         .show(context.get_mut(), |ui| {
-//             for mesh_check in target_meshes.iter() {
-//                 let Some(mesh) = meshes.get_mut(mesh_check) else {continue;};
-
-//                 mesh_attr_table.ui(ui)
-//                 .body(|mut body| {
-//                     body.row(20.0, |mut row| {
-//                         for attr_type in MeshAttributes::iter() {
-//                              if mesh_attr_table.0.contains_key(&attr_type.to_string()) {
-//                                 row.col(|ui| {
-//                                     match attr_type {
-//                                         MeshAttributes::POSITION => {
-//                                             let mut pos_vertices = attr_to_vec(mesh.attribute_mut(Mesh::ATTRIBUTE_POSITION)).unwrap_or_default();
-//                                                 for vertex in pos_vertices.iter_mut() {
-//                                                     ui.horizontal(|ui| {
-//                                                         for n in vertex.iter_mut() {
-//                                                             ui.add(egui::DragValue::new(*n).speed(0.1));
-//                                                         }
-//                                                     });
-//                                                 }
-//                                         },
-//                                         // MeshAttributes::INDICE => {
-//                                         //     let Some(indicies_type) = mesh.indices() else {return;};
-//                                         //     let mut indicies = Vec::new();
-//                                         //     match indicies_type {
-//                                         //         Indices::U32(vec) => {
-//                                         //             for n in vec {
-//                                         //                 indicies.push(*n)
-//                                         //             }
-//                                         //         },
-//                                         //         Indices::U16(vec) => {
-//                                         //             for n in vec {
-//                                         //                 indicies.push(*n as u32)
-//                                         //             }
-//                                         //         }
-//                                         //     };
-//                                         //     let grouped = indicies.chunks_exact(3);
-//                                         //     for indice in grouped.into_iter() {
-//                                         //         ui.horizontal(|ui| {
-//                                         //             for n in indice.iter() {
-//                                         //                 ui.label(n.to_string());
-//                                         //             }
-//                                         //         });
-//                                         //     }
-//                                         // },
-//                                         MeshAttributes::NORMAL => {
-//                                             let mut pos_vertices = attr_to_vec(mesh.attribute_mut(Mesh::ATTRIBUTE_NORMAL)).unwrap_or_default();
-//                                                 for vertex in pos_vertices.iter_mut() {
-//                                                     ui.horizontal(|ui| {
-//                                                         for n in vertex.iter_mut() {
-//                                                             ui.add(egui::DragValue::new(*n).speed(0.1));
-//                                                         }
-//                                                     });
-//                                                 }
-//                                         },
-//                                         MeshAttributes::UV => {
-//                                             let mut pos_vertices = attr_to_vec(mesh.attribute_mut(Mesh::ATTRIBUTE_UV_0)).unwrap_or_default();
-//                                                 for vertex in pos_vertices.iter_mut() {
-//                                                     ui.horizontal(|ui| {
-//                                                         for n in vertex.iter_mut() {
-//                                                             ui.add(egui::DragValue::new(*n).speed(0.1));
-//                                                         }
-//                                                     });
-//                                                 }
-//                                         },
-//                                     }
-//                                 });
-//                              } else {
-//                                 row.col(|ui| {ui.label("");});
-//                              }
-//                         }
-//                     });
-//                 });
-//             }
-//         });
-//     }
-// }
 
 /// returns a vec with mutable references to the values of mesh attributes.
 /// If the attribute doesn't exist, returns none.

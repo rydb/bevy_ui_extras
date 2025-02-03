@@ -1,4 +1,9 @@
-use std::{any::TypeId, collections::BTreeSet, fmt::Debug, ops::DerefMut};
+use std::{
+    any::TypeId,
+    collections::BTreeSet,
+    fmt::Debug,
+    ops::{DerefMut, RangeInclusive},
+};
 
 use bevy_derive::{Deref, DerefMut};
 use bevy_ecs::prelude::*;
@@ -33,16 +38,23 @@ pub enum DebugWidgetView {
     ComponentsView,
 }
 
+// pub struct Opacity(pub RangeInclusive<{ 0..100 }>);
+
+pub const OPACITY_RANGE: RangeInclusive<u8> = RangeInclusive::new(0, 255);
+
+#[derive(Resource, Default, Clone)]
+pub struct Opacity(pub u8);
+
 /// debug menu styles
 #[derive(Resource, Default, Clone)]
 pub struct UiStyle(pub Option<Frame>);
 
 #[derive(Resource, Clone)]
-pub struct UiAlignment(pub Align2);
+pub struct UiAlignment(pub Option<Align2>);
 
 impl Default for UiAlignment {
     fn default() -> Self {
-        Self(Align2::LEFT_TOP)
+        Self(Some(Align2::LEFT_TOP))
     }
 }
 

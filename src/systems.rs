@@ -19,6 +19,7 @@ use bevy_ecs::world::CommandQueue;
 use bevy_ecs::world::World;
 use bevy_input::prelude::*;
 use bevy_input::ButtonInput;
+use bevy_inspector_egui::egui::Slider;
 use bevy_inspector_egui::egui::Stroke;
 use bevy_inspector_egui::egui::Ui;
 use bevy_log::warn;
@@ -64,15 +65,21 @@ pub fn display_debug_menu_explanation(
         return;
     };
 
-    let window = egui::Window::new("Controls");
+    let mut window = egui::Window::new("Controls");
 
     let frame = match frame.0 {
         Some(frame) => frame,
         None => Frame::window(&context.get_mut().style()),
     };
+    match alignment.0 {
+        Some(alignment) => {
+            window = window.anchor(alignment, [0.0, 0.0]);
+        }
+        None => {}
+    }
     window
         .frame(frame)
-        .anchor(alignment.0, [0.0, 0.0])
+        //.anchor(alignment.0, [0.0, 0.0])
         .show(context.get_mut(), |ui| {
             ui.label(format!("{:#?}", controls));
         });
@@ -250,11 +257,17 @@ pub fn debug_menu(world: &mut World) {
     };
     let mut egui_context = egui_context_check.clone();
 
-    let window_style = world
+    let mut window_style = world
         .get_resource::<R>()
         .unwrap_or(&R::default())
         .0
         .unwrap_or(Frame::window(&egui_context.get_mut().style()));
+
+    {
+        if let Some(opacity) = world.get_resource::<Opacity>() {
+            window_style.fill[3] = opacity.0
+        }
+    }
     let alignment = {
         let Some(alignment) = world.get_resource::<UiAlignment>() else {
             return;
@@ -365,10 +378,31 @@ pub fn debug_menu(world: &mut World) {
 
     let selected_widget = selected_widget.clone();
     {
-        egui::Window::new("Debug Menu")
+        let mut window = egui::Window::new("Debug Menu");
+
+        if let Some(alignment) = alignment {
+            window = window.anchor(alignment, [0.0, 0.0])
+        }
+        window
             .frame(window_style)
-            .anchor(alignment, [0.0, 0.0])
+            //.anchor(alignment, [0.0, 0.0])
             .show(egui_context.get_mut(), |ui| {
+                {}
+                if let Some(mut opacity) = world.get_resource_mut::<Opacity>() {
+                    ui.horizontal(|ui| {
+                        ui.label("Opacity");
+                        ui.add(Slider::new(&mut opacity.0, OPACITY_RANGE));
+                        if ui.button("Glass").clicked() {
+                            opacity.0 = 128;
+                        }
+                        if ui.button("Opaque").clicked() {
+                            opacity.0 = 255;
+                        }
+                    });
+
+                    //warn!("could not get opacity");
+                }
+
                 if let Some(mut selected_widget) = world.get_resource_mut::<DebugWidgetView>() {
                     ui.horizontal(|ui| {
                         for widget in DebugWidgetView::iter() {

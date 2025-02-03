@@ -3,6 +3,7 @@ use std::ops::DerefMut;
 
 use bevy_diagnostic::{FrameTimeDiagnosticsPlugin, SystemInformationDiagnosticsPlugin};
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
+use bevy_inspector_egui::egui::Align2;
 // use bevy_inspector_egui::quick::AssetInspectorPlugin;
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 // use bevy_pbr::StandardMaterial;
@@ -15,13 +16,13 @@ use crate::{debug_menu, states::DebugMenuState, FilterResponse, KeyBinds};
 use crate::{
     display_debug_menu_explanation, manage_debug_menu_state, set_entry_to_off, set_entry_to_on,
     ComponentFilterMode, DebugMenuToggle, DebugModeFlagToggle, DebugWidgetView, FilterKind,
-    FocusOnDebugFilter, ShowAppStatus, UiAlignment, UiStyle,
+    FocusOnDebugFilter, Opacity, ShowAppStatus, UiAlignment, UiStyle,
 };
 
 /// plugin for general debug menu. See [`KeyBinds`] for keybinds.
 pub struct UiExtrasDebug {
     pub ui_style: UiStyle,
-    pub alignment: UiAlignment,
+    pub alignment: Option<Align2>,
     pub default_filters: Vec<FilterKind>,
     pub keybinds_override: Option<KeyBinds>,
     pub menu_mode: DebugMenuState,
@@ -31,7 +32,7 @@ impl Default for UiExtrasDebug {
     fn default() -> Self {
         Self {
             ui_style: UiStyle::BLACK_GLASS,
-            alignment: UiAlignment::default(),
+            alignment: None,
             keybinds_override: None,
             default_filters: vec![],
             menu_mode: DebugMenuState::Closed,
@@ -61,13 +62,18 @@ impl Plugin for UiExtrasDebug {
         //     app.add_plugins(InspectSchedulePlugin);
         // }
 
+        let opacity = match self.ui_style.0 {
+            Some(style) => style.fill.a(),
+            None => u8::MAX,
+        };
         app.init_resource::<DebugMenuToggle>()
             .insert_state(self.menu_mode.clone())
             .insert_state(DebugModeFlagToggle::Off)
             .insert_resource(self.keybinds_override.clone().unwrap_or_default())
             .register_type::<KeyBinds>()
+            .insert_resource(Opacity(opacity))
             .insert_resource(self.ui_style.clone())
-            .insert_resource(self.alignment.clone())
+            .insert_resource(UiAlignment(self.alignment.clone()))
             .init_resource::<DebugWidgetView>()
             .init_resource::<FilterResponse>()
             .init_resource::<ShowAppStatus>()
