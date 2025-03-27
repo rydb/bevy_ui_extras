@@ -15,7 +15,7 @@ use bevy_state::prelude::*;
 use bevy_utils::HashMap;
 use strum_macros::{Display, EnumIter};
 
-use crate::{stylesheets::DEBUG_FRAME_STYLE, TypeIdNameCache};
+use crate::{TypeIdNameCache, stylesheets::DEBUG_FRAME_STYLE};
 
 /// Toggle to enable debug mode resources
 #[derive(Resource, Deref, DerefMut, Default)]

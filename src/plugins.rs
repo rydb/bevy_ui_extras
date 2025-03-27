@@ -12,12 +12,12 @@ use bevy_state::prelude::*;
 use bevy_app::{Plugin, Update};
 use bevy_ecs::prelude::*;
 
-use crate::{debug_menu, states::DebugMenuState, FilterResponse, KeyBinds};
 use crate::{
-    display_debug_menu_explanation, manage_debug_menu_state, set_entry_to_off, set_entry_to_on,
     ComponentFilterMode, DebugMenuToggle, DebugModeFlagToggle, DebugWidgetView, FilterKind,
     FocusOnDebugFilter, Opacity, ShowAppStatus, UiAlignment, UiStyle,
+    display_debug_menu_explanation, manage_debug_menu_state, set_entry_to_off, set_entry_to_on,
 };
+use crate::{FilterResponse, KeyBinds, debug_menu, states::DebugMenuState};
 
 /// plugin for general debug menu. See [`KeyBinds`] for keybinds.
 pub struct UiExtrasDebug {
