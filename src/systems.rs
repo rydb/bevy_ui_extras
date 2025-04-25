@@ -361,7 +361,6 @@ pub fn debug_menu(world: &mut World) {
         })
         .collect::<HashMap<_, _>>();
 
-
     let multi_select = world
         .get_resource::<ButtonInput<KeyCode>>()
         .map(|n| n.pressed(KeyCode::ShiftLeft))
@@ -595,10 +594,11 @@ pub fn debug_menu(world: &mut World) {
                         ui.set_max_size(screen_size);
                         egui::ScrollArea::new(true).show(ui, |ui| {
                             ui.heading("Resources");
-                            
-                            let mut alphabetized_resources = resources_filtered.iter().collect::<Vec<_>>();
 
-                            alphabetized_resources.sort_by(  |(_, name), (_, name2)| name.cmp(name2));
+                            let mut alphabetized_resources =
+                                resources_filtered.iter().collect::<Vec<_>>();
+
+                            alphabetized_resources.sort_by(|(_, name), (_, name2)| name.cmp(name2));
                             for (id, name) in alphabetized_resources.iter() {
                                 let color =
                                     match debug_filter_response.selected_type.contains_key(id) {
@@ -677,12 +677,12 @@ pub fn debug_menu(world: &mut World) {
                                                 }
                                             });
                                         });
-                                    let mut alphabetized_components = components_filtered.iter().collect::<Vec<_>>();
+                                    let mut alphabetized_components =
+                                        components_filtered.iter().collect::<Vec<_>>();
 
-                                    alphabetized_components.sort_by(|(_, (name, _)), (_, (name2, _))| name.cmp(name2));
-                                    for (id, (name, origin)) in
-                                        alphabetized_components.iter()
-                                    {
+                                    alphabetized_components
+                                        .sort_by(|(_, (name, _)), (_, (name2, _))| name.cmp(name2));
+                                    for (id, (name, origin)) in alphabetized_components.iter() {
                                         let color = match debug_filter_response
                                             .selected_type
                                             .contains_key(*id)

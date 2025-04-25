@@ -55,7 +55,7 @@ impl Plugin for UiExtrasDebug {
             app.add_plugins(EguiPlugin {
                 //(TODO): Setting this to false because it causes a panic
                 //once this is fixed, set this to true.
-                enable_multipass_for_primary_context: false
+                enable_multipass_for_primary_context: false,
             });
         }
         // if !app.is_plugin_added::<AssetInspectorPlugin::<StandardMaterial>>() {
