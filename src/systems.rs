@@ -1,4 +1,5 @@
 use std::collections::BTreeSet;
+use std::collections::HashMap;
 use std::ops::DerefMut;
 
 use bevy_diagnostic::DiagnosticsStore;
@@ -26,7 +27,6 @@ use bevy_log::warn;
 use bevy_state::prelude::*;
 // use bevy_egui::EguiContext;
 use bevy_utils::default;
-use bevy_utils::hashbrown::HashMap;
 use bevy_window::PresentMode;
 use bevy_window::PrimaryWindow;
 use bevy_window::Window;
@@ -61,7 +61,7 @@ pub fn display_debug_menu_explanation(
     alignment: Res<UiAlignment>,
     frame: Res<UiStyle>,
 ) {
-    let Ok(mut context) = windows.get_single_mut() else {
+    let Ok(mut context) = windows.single_mut() else {
         return;
     };
 
@@ -137,7 +137,7 @@ pub fn display_app_status(
     });
 
     let cpu_usage = diagnostics
-        .get(&SystemInformationDiagnosticsPlugin::CPU_USAGE)
+        .get(&SystemInformationDiagnosticsPlugin::SYSTEM_CPU_USAGE)
         .map(|diag| diag.value())
         .and_then(|n| n);
     let cpu_color = cpu_usage
@@ -167,7 +167,7 @@ pub fn display_app_status(
         )
     });
     let ram_usage = diagnostics
-        .get(&SystemInformationDiagnosticsPlugin::MEM_USAGE)
+        .get(&SystemInformationDiagnosticsPlugin::SYSTEM_MEM_USAGE)
         .map(|diag| diag.value())
         .and_then(|n| n);
 
@@ -245,7 +245,7 @@ pub fn debug_menu(world: &mut World) {
 
     let Ok(egui_context_check) = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world)
+        .single(world)
         .inspect_err(|err| {
             warn!(
                 "No singleton primary window found. Aborting. Reason: {:#}",
@@ -360,6 +360,8 @@ pub fn debug_menu(world: &mut World) {
             }
         })
         .collect::<HashMap<_, _>>();
+
+
     let multi_select = world
         .get_resource::<ButtonInput<KeyCode>>()
         .map(|n| n.pressed(KeyCode::ShiftLeft))
@@ -593,14 +595,18 @@ pub fn debug_menu(world: &mut World) {
                         ui.set_max_size(screen_size);
                         egui::ScrollArea::new(true).show(ui, |ui| {
                             ui.heading("Resources");
-                            for (id, name) in resources_filtered.iter() {
+                            
+                            let mut alphabetized_resources = resources_filtered.iter().collect::<Vec<_>>();
+
+                            alphabetized_resources.sort_by(  |(_, name), (_, name2)| name.cmp(name2));
+                            for (id, name) in alphabetized_resources.iter() {
                                 let color =
                                     match debug_filter_response.selected_type.contains_key(id) {
                                         true => Color32::WHITE,
                                         false => Color32::GRAY,
                                     };
 
-                                if ui.button(RichText::new(*name).color(color)).clicked() {
+                                if ui.button(RichText::new(**name).color(color)).clicked() {
                                     let Some(mut debug_filter_response) =
                                         world.get_resource_mut::<FilterResponse>()
                                     else {
@@ -608,7 +614,7 @@ pub fn debug_menu(world: &mut World) {
                                         return;
                                     };
                                     let type_id_cache = TypeIdNameCache {
-                                        type_id: *id,
+                                        type_id: **id,
                                         name: (**name).to_owned(),
                                     };
 
@@ -624,7 +630,7 @@ pub fn debug_menu(world: &mut World) {
                                         }
                                         debug_filter_response
                                             .selected_type
-                                            .insert(*id, type_id_cache);
+                                            .insert(**id, type_id_cache);
                                     }
                                 };
                             }
@@ -671,9 +677,11 @@ pub fn debug_menu(world: &mut World) {
                                                 }
                                             });
                                         });
+                                    let mut alphabetized_components = components_filtered.iter().collect::<Vec<_>>();
 
-                                    for (id, ((name, origin), _), ..) in
-                                        components_filtered_and_attached.iter()
+                                    alphabetized_components.sort_by(|(_, (name, _)), (_, (name2, _))| name.cmp(name2));
+                                    for (id, (name, origin)) in
+                                        alphabetized_components.iter()
                                     {
                                         let color = match debug_filter_response
                                             .selected_type
@@ -836,7 +844,7 @@ pub fn visualize_entities_with_component<T: Component>(display: Display) -> impl
     move |world| {
         let Ok(egui_context_check) = world
             .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-            .get_single(world)
+            .single(world)
         else {
             warn!("multiple \"primary\" windows found. This is not supported. Aborting");
             return;
@@ -889,7 +897,7 @@ pub fn visualize_resource<T: Resource + Reflect>(display: Display) -> impl Fn(&m
     move |world| {
         let Ok(egui_context_check) = world
             .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-            .get_single(world)
+            .single(world)
         else {
             warn!("multiple \"primary\" windows found. This is not supported. Aborting");
             return;
@@ -960,7 +968,7 @@ pub fn visualize_components_for<T: Component + Reflect>(display: Display) -> imp
 
         let Ok(egui_context_check) = world
             .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-            .get_single(world)
+            .single(world)
         else {
             warn!("multiple \"primary\" windows found. This is not supported. Aborting");
             return;

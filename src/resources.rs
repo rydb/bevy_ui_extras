@@ -1,18 +1,16 @@
 use std::{
     any::TypeId,
-    collections::BTreeSet,
+    collections::{BTreeSet, HashMap},
     fmt::Debug,
     ops::{DerefMut, RangeInclusive},
 };
 
 use bevy_derive::{Deref, DerefMut};
 use bevy_ecs::prelude::*;
-use bevy_ecs::system::Resource;
 use bevy_input::prelude::KeyCode;
 use bevy_inspector_egui::egui::{Align2, Frame};
 use bevy_reflect::Reflect;
 use bevy_state::prelude::*;
-use bevy_utils::HashMap;
 use strum_macros::{Display, EnumIter};
 
 use crate::{TypeIdNameCache, stylesheets::DEBUG_FRAME_STYLE};

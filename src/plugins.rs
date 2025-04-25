@@ -52,7 +52,11 @@ impl Plugin for UiExtrasDebug {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
         if !app.is_plugin_added::<EguiPlugin>() {
-            app.add_plugins(EguiPlugin);
+            app.add_plugins(EguiPlugin {
+                //(TODO): Setting this to false because it causes a panic
+                //once this is fixed, set this to true.
+                enable_multipass_for_primary_context: false
+            });
         }
         // if !app.is_plugin_added::<AssetInspectorPlugin::<StandardMaterial>>() {
         //     app.add_plugins(AssetInspectorPlugin::<StandardMaterial>::default());
@@ -88,7 +92,7 @@ impl Plugin for UiExtrasDebug {
                 Update,
                 display_debug_menu_explanation.run_if(in_state(DebugMenuState::Explain)),
             )
-            .add_plugins(FrameTimeDiagnosticsPlugin)
+            .add_plugins(FrameTimeDiagnosticsPlugin::default())
             .add_plugins(SystemInformationDiagnosticsPlugin);
     }
 }
