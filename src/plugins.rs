@@ -9,45 +9,43 @@ use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 // use bevy_pbr::StandardMaterial;
 use bevy_state::prelude::*;
 // use bevy_pbr::StandardMaterial;
-use bevy_app::{Plugin, Update};
+use bevy_app::{Plugin, PluginGroup, PluginGroupBuilder, Update};
 use bevy_ecs::prelude::*;
 
+use crate::widgets::app_status::plugins::AppStatusMenuPlugin;
+use crate::widgets::debug_menu::plugins::DebugMenuPlugin;
+use crate::widgets::debug_menu::{DebugMenuKeybinds, DebugMenuState};
 use crate::{
-    ComponentFilterMode, DebugMenuToggle, DebugModeFlagToggle, DebugWidgetView, FilterKind,
-    FocusOnDebugFilter, Opacity, ShowAppStatus, UiAlignment, UiStyle,
-    display_debug_menu_explanation, manage_debug_menu_state, set_entry_to_off, set_entry_to_on,
+    Opacity, UiAlignment, UiStyle,
 };
-use crate::{FilterResponse, KeyBinds, debug_menu, states::DebugMenuState};
 
-/// plugin for general debug menu. See [`KeyBinds`] for keybinds.
-pub struct UiExtrasDebug {
+
+
+
+
+/// setup plugin for [`UiExtrasDebug`].
+pub struct UiExtrasDebugSetup {
     pub ui_style: UiStyle,
     pub alignment: Option<Align2>,
-    pub default_filters: Vec<FilterKind>,
-    pub keybinds_override: Option<KeyBinds>,
+    // pub default_filters: Vec<FilterKind>,
+    pub keybinds_override: Option<DebugMenuKeybinds>,
     pub menu_mode: DebugMenuState,
 }
 
-impl Default for UiExtrasDebug {
+impl Default for UiExtrasDebugSetup {
     fn default() -> Self {
         Self {
             ui_style: UiStyle::BLACK_GLASS,
             alignment: None,
             keybinds_override: None,
-            default_filters: vec![],
+            // default_filters: vec![],
             menu_mode: DebugMenuState::Closed,
         }
     }
 }
 
-impl Plugin for UiExtrasDebug {
-    fn build(&self, app: &mut bevy_app::App) {
-        // let window_style = match self.ui_style {
-        //     UiStyle::Black_Glass => UiStyle::default(),
-        //     UiStyle::Default => UiStyle(None),
-        //     UiStyle::Custom(frame) => UiStyle(Some(frame)),
-        // };
-
+impl Plugin for UiExtrasDebugSetup {
+    fn build(&self, app: &mut bevy_app::App) {;
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
@@ -70,44 +68,26 @@ impl Plugin for UiExtrasDebug {
             Some(style) => style.fill.a(),
             None => u8::MAX,
         };
-        app.init_resource::<DebugMenuToggle>()
+        app
             .insert_state(self.menu_mode.clone())
-            .insert_state(DebugModeFlagToggle::Off)
             .insert_resource(self.keybinds_override.clone().unwrap_or_default())
-            .register_type::<KeyBinds>()
             .insert_resource(Opacity(opacity))
             .insert_resource(self.ui_style.clone())
             .insert_resource(UiAlignment(self.alignment.clone()))
-            .init_resource::<DebugWidgetView>()
-            .init_resource::<FilterResponse>()
-            .init_resource::<ShowAppStatus>()
-            .init_resource::<FocusOnDebugFilter>()
-            .init_resource::<ComponentFilterMode>()
-            //.init_resource::<SelectedEntities>()
-            .register_type::<FilterResponse>()
-            //.register_asset_reflect::<StandardMaterial>()
-            .add_systems(Update, debug_menu.run_if(in_state(DebugMenuState::Open)))
-            .add_systems(Update, manage_debug_menu_state)
-            .add_systems(
-                Update,
-                display_debug_menu_explanation.run_if(in_state(DebugMenuState::Explain)),
-            )
-            .add_plugins(FrameTimeDiagnosticsPlugin::default())
-            .add_plugins(SystemInformationDiagnosticsPlugin);
+        ;
+
     }
 }
 
-/// Plugin for registering debug mode flags. If your resource is a bool newtype. implement deref into bool for it and, register it with
-/// ```rust
-/// app.add_plugins(DebugModeFlagRegistry::<T>::default())
-/// ```
-/// and then you can enable it through the debug menu.
-#[derive(Default)]
-pub struct DebugModeFlagRegister<T: DerefMut<Target = bool> + Resource>(pub PhantomData<T>);
 
-impl<T: DerefMut<Target = bool> + Resource> Plugin for DebugModeFlagRegister<T> {
-    fn build(&self, app: &mut bevy_app::App) {
-        app.add_systems(OnEnter(DebugModeFlagToggle::On), set_entry_to_on::<T>)
-            .add_systems(OnEnter(DebugModeFlagToggle::Off), set_entry_to_off::<T>);
+/// plugin for general debug menu. See [`KeyBinds`] for keybinds.
+pub struct UiExtrasDebug(pub UiExtrasDebugSetup);
+
+impl PluginGroup for UiExtrasDebug {
+    fn build(self) -> bevy_app::PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+        .add(self.0)
+        .add(DebugMenuPlugin)
+        .add(AppStatusMenuPlugin)
     }
 }

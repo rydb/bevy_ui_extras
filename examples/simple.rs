@@ -2,9 +2,9 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 
-use bevy_ui_extras::*;
-use states::DebugMenuState;
+use bevy_ui_extras::{widgets::debug_menu::{plugins::DebugModeFlagRegister, DebugMenuState}, *};
 use strum_macros::{Display, EnumIter};
+
 
 #[derive(Default, Deref, DerefMut, Resource)]
 pub struct DummyDebugToggle(pub bool);
@@ -16,12 +16,14 @@ fn main() {
         .init_resource::<DummyDebugToggle>()
         .add_plugins(DebugModeFlagRegister::<DummyDebugToggle>::default())
         .register_type::<MeshInfoTarget>()
-        .add_plugins(UiExtrasDebug {
-            ui_style: UiStyle::BLACK_GLASS,
-            alignment: None,
-            menu_mode: DebugMenuState::Explain,
-            ..default()
-        })
+        .add_plugins(UiExtrasDebug(
+            UiExtrasDebugSetup {
+                ui_style: UiStyle::BLACK_GLASS,
+                alignment: None,
+                menu_mode: DebugMenuState::Explain,
+                ..default()
+            }
+        ))
         .add_systems(Startup, spawn_world)
         .add_systems(
             Update,

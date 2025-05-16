@@ -3,7 +3,7 @@ use std::any::*;
 use bevy_ecs::component::ComponentId;
 use bevy_ecs::prelude::*;
 use bevy_ecs::world::CommandQueue;
-use bevy_inspector_egui::egui::{self, Frame};
+use bevy_inspector_egui::egui::{self, Frame, Ui};
 use bevy_inspector_egui::reflect_inspector::{Context, InspectorUi};
 use bevy_inspector_egui::restricted_world_view::RestrictedWorldView;
 use bevy_log::warn;
@@ -16,6 +16,7 @@ pub mod resources;
 pub mod stylesheets;
 pub mod systems;
 pub mod tables;
+pub mod widgets;
 // pub mod tree;
 pub mod states;
 
