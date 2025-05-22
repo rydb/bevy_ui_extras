@@ -61,24 +61,7 @@ impl TypeIdNameCache {
     }
 }
 
-/// fetches the info for the componenet of type T for the given entity, if it exists.
-pub fn component_info_for(
-    world: &mut RestrictedWorldView<'_>,
-    component: &TypeIdNameCache,
-) -> Option<(String, ComponentId, Option<TypeId>, usize)> {
-    let component_id = match world.world().components().get_id(component.type_id) {
-        Some(id) => id,
-        None => {
-            warn!("Could not get component id for {:#}", component.name);
-            return None;
-        }
-    };
-    let info = world.world().components().get_info(component_id)?;
 
-    let name = pretty_type_name::pretty_type_name_str(info.name());
-
-    return Some((name, component_id, info.type_id(), info.layout().size()));
-}
 
 /// renders ui for a given resource.
 pub fn ui_for_resource(
@@ -129,117 +112,7 @@ pub fn ui_for_resource(
     queue.apply(world);
 }
 
-/// displays ui for entity and its given components
-pub fn ui_for_components(
-    world: &mut RestrictedWorldView<'_>,
-    mut queue: Option<&mut CommandQueue>,
-    entity: Entity,
-    ui: &mut egui::Ui,
-    id: egui::Id,
-    type_registry: &TypeRegistry,
-    components: &Vec<&TypeIdNameCache>,
-) {
-    for component in components.iter() {
-        let Some((name, component_id, component_type_id, size)) =
-            component_info_for(world, component)
-        else {
-            return;
-        };
 
-        let id = id.with(component_id);
-
-        let header = egui::CollapsingHeader::new(&name)
-            .id_salt(id)
-            .default_open(false);
-
-        let Some(component_type_id) = component_type_id else {
-            return;
-        };
-
-        // create a context with access to the world except for the currently viewed component
-        let (mut component_view, world) = world.split_off_component((entity, component_type_id));
-        let mut cx = Context {
-            world: Some(world),
-            #[allow(clippy::needless_option_as_deref)]
-            queue: queue.as_deref_mut(),
-        };
-
-        // let (value, _, set_changed) = match component_view.get_entity_component_reflect(
-        //     entity,
-        //     component_type_id,
-        //     type_registry,
-        // ) {
-        //     Ok(value) => value,
-        //     Err(_) => {
-        //         //header.show(ui, |ui| errors::show_error(e, ui, &name));
-        //         //ui.label(format!("{:#?}", e));
-        //         continue;
-        //     }
-        // };
-        let Ok(mut value) = component_view
-            .get_entity_component_reflect(entity, component_type_id, type_registry)
-            .inspect_err(|err| {
-                // skip over errors that are not relevant(Not having given component)
-                let mabye_err = match err {
-                    bevy_inspector_egui::restricted_world_view::Error::NoAccessToResource(_) => {
-                        Some(err)
-                    }
-                    bevy_inspector_egui::restricted_world_view::Error::NoAccessToComponent(_) => {
-                        Some(err)
-                    }
-                    bevy_inspector_egui::restricted_world_view::Error::ResourceDoesNotExist(_) => {
-                        None
-                    }
-                    bevy_inspector_egui::restricted_world_view::Error::ComponentDoesNotExist(_) => {
-                        None
-                    }
-                    bevy_inspector_egui::restricted_world_view::Error::NoComponentId(_) => {
-                        Some(err)
-                    }
-                    bevy_inspector_egui::restricted_world_view::Error::NoTypeRegistration(_) => {
-                        Some(err)
-                    }
-                    bevy_inspector_egui::restricted_world_view::Error::NoTypeData(_, _) => {
-                        Some(err)
-                    }
-                };
-
-                if let Some(msg) = mabye_err {
-                    ui.label(format!("{:#?}", msg));
-                }
-            })
-        else {
-            continue;
-        };
-
-        if size == 0 {
-            header.show(ui, |_| {});
-            continue;
-        }
-
-        // if is_changed {
-        //     #[cfg(feature = "highlight_changes")]
-        //     set_highlight_style(ui);
-        // }
-
-        header.show(ui, |ui| {
-            ui.reset_style();
-
-            let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
-                .ui_for_reflect_with_options(
-                    value.bypass_change_detection().as_partial_reflect_mut(),
-                    ui,
-                    id.with(component_id),
-                    &(),
-                );
-
-            if inspector_changed {
-                value.set_changed();
-            }
-        });
-        ui.reset_style();
-    }
-}
 
 // Display the ui for a componenent of an entity
 // pub fn ui_for_entity_components<T: Component>(

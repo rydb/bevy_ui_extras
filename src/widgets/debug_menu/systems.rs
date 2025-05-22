@@ -36,7 +36,7 @@ use bevy_window::WindowResolution;
 use colorgrad::Gradient;
 use strum::IntoEnumIterator;
 
-use crate::{ui_for_components, widgets::app_status::resources::ShowAppStatus};
+use crate::widgets::{app_status::resources::ShowAppStatus, components_view::ui_for_components};
 use crate::ui_for_resource;
 use crate::widgets::app_status::display_app_status;
 use crate::Opacity;
@@ -426,45 +426,6 @@ pub fn debug_menu(world: &mut World) {
                         }
                     }
                 });
-                // {
-                //     let Some(mut debug_filter_response) = world.get_resource_mut::<FilterResponse>() else {
-                //         warn!("FilterResponse doesn't exist. Aborting");
-                //         return;
-                //     };
-                //     {
-                //         ui.checkbox(&mut debug_filter_response.fuzzy_match_enabled, "Fuzzy Match");
-
-                //     }
-                // }
-
-                // egui::SidePanel::left("Entities")
-                // .frame(window_style)
-                // .show_inside(ui, |ui| {
-                //     let screen_size = ui.ctx().screen_rect().size();
-                //     ui.set_max_size(screen_size);
-                //     ui.heading("Entities");
-
-                //     for entity in world.iter_entities().map(|e_ref| e_ref.id()){
-
-                //         let color = match selected_entities.0.contains(&entity) {
-                //             true => Color32::WHITE,
-                //             false => Color32::GRAY
-                //         };
-
-                //         let name = guess_entity_name(&world, entity);
-
-                //         if ui.button(RichText::new(name).color(color)).clicked() {
-
-                //             let Some(mut selected_entities) = world.get_resource_mut::<SelectedEntities>() else {
-                //                 warn!("SelectedEntities doesn't exist. Aborting");
-                //                 return;
-                //             };
-                //             selected_entities.0.insert(entity);
-                //         }
-                //     }
-                //     //ui_for_world_entities_filtered::<Without<Parent>>(world, ui, true);
-
-                // });
 
                 egui::SidePanel::left("Resources")
                     .frame(window_style)
@@ -526,34 +487,34 @@ pub fn debug_menu(world: &mut World) {
                                 ui.vertical(|ui| {
                                     ui.heading("Components");
 
-                                    let Some(mut match_mode) =
-                                        world.get_resource_mut::<ComponentFilterMode>()
-                                    else {
-                                        warn!("ComponentFilterMode doesn't exist. Aborting");
-                                        return;
-                                    };
+                                    // let Some(mut match_mode) =
+                                    //     world.get_resource_mut::<ComponentFilterMode>()
+                                    // else {
+                                    //     warn!("ComponentFilterMode doesn't exist. Aborting");
+                                    //     return;
+                                    // };
                                     egui::Frame::default()
                                         .stroke(Stroke::new(2.0, Color32::BLACK))
                                         .outer_margin(5.0)
                                         .inner_margin(5.0)
                                         .show(ui, |ui| {
                                             ui.horizontal(|ui| {
-                                                for variant in ComponentFilterMode::iter() {
-                                                    let color = match *match_mode == variant {
-                                                        true => Color32::WHITE,
-                                                        false => Color32::GRAY,
-                                                    };
+                                                // for variant in ComponentFilterMode::iter() {
+                                                //     let color = match *match_mode == variant {
+                                                //         true => Color32::WHITE,
+                                                //         false => Color32::GRAY,
+                                                //     };
 
-                                                    if ui
-                                                        .button(
-                                                            RichText::new(variant.to_string())
-                                                                .color(color),
-                                                        )
-                                                        .clicked()
-                                                    {
-                                                        *match_mode = variant
-                                                    }
-                                                }
+                                                //     if ui
+                                                //         .button(
+                                                //             RichText::new(variant.to_string())
+                                                //                 .color(color),
+                                                //         )
+                                                //         .clicked()
+                                                //     {
+                                                //         *match_mode = variant
+                                                //     }
+                                                // }
                                             });
                                         });
                                     let mut alphabetized_components =
@@ -636,49 +597,49 @@ pub fn debug_menu(world: &mut World) {
                                 let mut queue = CommandQueue::default();
                                 let mut entities: BTreeSet<Entity> = BTreeSet::new();
 
-                                let Some(match_mode) = world.get_resource::<ComponentFilterMode>()
-                                else {
-                                    warn!("ComponentFilterMode doesn't exist. Aborting");
-                                    return;
-                                };
+                                // let Some(match_mode) = world.get_resource::<ComponentFilterMode>()
+                                // else {
+                                //     warn!("ComponentFilterMode doesn't exist. Aborting");
+                                //     return;
+                                // };
 
-                                match match_mode {
-                                    ComponentFilterMode::OR => {
-                                        let found = selected_components
-                                            .iter()
-                                            .filter_map(|component| {
-                                                components_filtered_and_attached
-                                                    .get(&component.type_id)
-                                            })
-                                            .map(|(_, e)| e);
+                                // match match_mode {
+                                //     ComponentFilterMode::OR => {
+                                //         let found = selected_components
+                                //             .iter()
+                                //             .filter_map(|component| {
+                                //                 components_filtered_and_attached
+                                //                     .get(&component.type_id)
+                                //             })
+                                //             .map(|(_, e)| e);
 
-                                        for found_entities in found.into_iter() {
-                                            for found_entity in found_entities.into_iter() {
-                                                entities.insert(*found_entity);
-                                            }
-                                        }
-                                    }
-                                    ComponentFilterMode::AND => {
-                                        let found = selected_components
-                                            .iter()
-                                            .filter_map(|component| {
-                                                components_filtered_and_attached
-                                                    .get(&component.type_id)
-                                            })
-                                            .map(|(_, e)| e);
+                                //         for found_entities in found.into_iter() {
+                                //             for found_entity in found_entities.into_iter() {
+                                //                 entities.insert(*found_entity);
+                                //             }
+                                //         }
+                                //     }
+                                //     ComponentFilterMode::AND => {
+                                //         let found = selected_components
+                                //             .iter()
+                                //             .filter_map(|component| {
+                                //                 components_filtered_and_attached
+                                //                     .get(&component.type_id)
+                                //             })
+                                //             .map(|(_, e)| e);
 
-                                        for found_entities in found.into_iter() {
-                                            for found_entity in found_entities.into_iter() {
-                                                let e = *found_entity;
-                                                if selected_components.iter().all(|comp| {
-                                                    world.entity(e).contains_type_id(comp.type_id)
-                                                }) {
-                                                    entities.insert(e);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                //         for found_entities in found.into_iter() {
+                                //             for found_entity in found_entities.into_iter() {
+                                //                 let e = *found_entity;
+                                //                 if selected_components.iter().all(|comp| {
+                                //                     world.entity(e).contains_type_id(comp.type_id)
+                                //                 }) {
+                                //                     entities.insert(e);
+                                //                 }
+                                //             }
+                                //         }
+                                //     }
+                                // }
                                 for entity in entities {
                                     let name = guess_entity_name(&world, entity);
                                     ui.label(name);

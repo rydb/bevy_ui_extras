@@ -47,12 +47,6 @@ pub enum DebugModeFlagToggle {
 #[derive(Resource, Deref, DerefMut, Default)]
 pub struct DebugMenuToggle(pub bool);
 
-#[derive(Resource, Default, EnumIter, Display, PartialEq, Eq)]
-pub enum ComponentFilterMode {
-    AND,
-    #[default]
-    OR,
-}
 
 // #[derive(Resource, Default, Clone)]
 // pub struct SelectedEntities(pub BTreeSet<Entity>);

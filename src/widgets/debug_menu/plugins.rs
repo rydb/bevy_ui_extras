@@ -43,7 +43,6 @@ impl Plugin for DebugMenuPlugin {
         .add_systems(Update, manage_debug_menu_state)
         .init_resource::<DebugMenuToggle>()
         .init_resource::<DebugWidgetView>()
-        .init_resource::<ComponentFilterMode>()
         .register_type::<DebugMenuKeybinds>()
 
 

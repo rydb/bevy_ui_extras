@@ -8,7 +8,7 @@ use bevy_app::prelude::*;
 use bevy_input::prelude::*;
 use resources::DebugMenuToggle;
 
-mod resources;
+pub mod resources;
 pub mod plugins;
 mod systems;
 

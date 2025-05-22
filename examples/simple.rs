@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 
-use bevy_ui_extras::{widgets::debug_menu::{plugins::DebugModeFlagRegister, DebugMenuState}, *};
+use bevy_ui_extras::{widgets::{components_view::visualize_components_for, debug_menu::{plugins::DebugModeFlagRegister, DebugMenuState}}, *};
 use strum_macros::{Display, EnumIter};
 
 
